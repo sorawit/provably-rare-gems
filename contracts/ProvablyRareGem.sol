@@ -37,11 +37,11 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   constructor(address _loot) ERC1155('n/a') {
     LOOT = IERC721(_loot);
     address zero = address(0);
-    gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 10000, 64, 1000, msg.sender, zero);
-    gems[1] = Gem('Topaz', '#FFC87C', true, 8**3, 0, 10001, 32, 1000, msg.sender, zero);
-    gems[2] = Gem('Opal', '#A8C3BC', true, 8**4, 0, 10005, 16, 1000, msg.sender, zero);
+    gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 64, 10000, 1000, msg.sender, zero);
+    gems[1] = Gem('Topaz', '#FFC87C', true, 8**3, 0, 32, 10001, 1000, msg.sender, zero);
+    gems[2] = Gem('Opal', '#A8C3BC', true, 8**4, 0, 16, 10005, 1000, msg.sender, zero);
     gems[3] = Gem('Sapphire', '#0F52BA', true, 8**5, 0, 8, 10010, 1000, msg.sender, zero);
-    gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 10030, 4, 1000, msg.sender, zero);
+    gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 4, 10030, 1000, msg.sender, zero);
     gems[5] = Gem('Emerald', '#50C878', true, 8**7, 0, 2, 10100, 1000, msg.sender, zero);
     gems[6] = Gem('Jadeite', '#00A36C', true, 8**8, 0, 1, 10300, 1000, msg.sender, zero);
     gems[7] = Gem('Pink Diamond', '#FC74E4', true, 8**9, 0, 1, 11000, 1000, msg.sender, zero);
