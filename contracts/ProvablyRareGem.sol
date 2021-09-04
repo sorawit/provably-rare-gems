@@ -82,6 +82,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   ) external nonReentrant {
     require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
+    require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
     require(craftCap < 1e4, 'bad craft cap');
     require(premine <= 1e9, 'bad premine');
     uint kind = uint(keccak256(abi.encodePacked(block.chainid, address(this), createNonce++)));
