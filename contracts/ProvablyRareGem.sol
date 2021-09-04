@@ -22,8 +22,9 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     bool exists; // True if exist, False otherwise
     uint difficulty; // Current difficulity level. Must be non decreasing
     uint crafted; // Amount of gems crafted by the manager
+    uint gemsPerMine; // Amount of gems to distribute per mine
     uint multiplier; // Difficulty multiplier times 1e4. Must be between 1e4 and 1e10
-    uint craftCap; // Allocation to gem manager. Must be between 0 and 1e4
+    uint craftCap; // Allocation ratio to gem manager. Must be between 0 and 1e4
     address manager; // Current gem manager
     address pendingManager; // Pending gem manager to be transferred to
   }
@@ -35,16 +36,17 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   constructor(address _loot) ERC1155('n/a') {
     LOOT = IERC721(_loot);
-    gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 10000, 1000, msg.sender, address(0));
-    gems[1] = Gem('Topaz', '#FFC87C', true, 8**3, 0, 10001, 1000, msg.sender, address(0));
-    gems[2] = Gem('Opal', '#A8C3BC', true, 8**4, 0, 10005, 1000, msg.sender, address(0));
-    gems[3] = Gem('Sapphire', '#0F52BA', true, 8**5, 0, 10010, 1000, msg.sender, address(0));
-    gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 10030, 1000, msg.sender, address(0));
-    gems[5] = Gem('Emerald', '#50C878', true, 8**7, 0, 10100, 1000, msg.sender, address(0));
-    gems[6] = Gem('Jadelite', '#00A36C', true, 8**8, 0, 10300, 1000, msg.sender, address(0));
-    gems[7] = Gem('Pink Diamond', '#FC74E4', true, 8**9, 0, 11000, 1000, msg.sender, address(0));
-    gems[8] = Gem('Blue Diamond', '#348CFC', true, 8**10, 0, 20000, 1000, msg.sender, address(0));
-    gems[9] = Gem('Red Diamond', '#BC1C2C', true, 8**11, 0, 50000, 1000, msg.sender, address(0));
+    address zero = address(0);
+    gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 10000, 64, 1000, msg.sender, zero);
+    gems[1] = Gem('Topaz', '#FFC87C', true, 8**3, 0, 10001, 32, 1000, msg.sender, zero);
+    gems[2] = Gem('Opal', '#A8C3BC', true, 8**4, 0, 10005, 16, 1000, msg.sender, zero);
+    gems[3] = Gem('Sapphire', '#0F52BA', true, 8**5, 0, 8, 10010, 1000, msg.sender, zero);
+    gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 10030, 4, 1000, msg.sender, zero);
+    gems[5] = Gem('Emerald', '#50C878', true, 8**7, 0, 2, 10100, 1000, msg.sender, zero);
+    gems[6] = Gem('Jadeite', '#00A36C', true, 8**8, 0, 1, 10300, 1000, msg.sender, zero);
+    gems[7] = Gem('Pink Diamond', '#FC74E4', true, 8**9, 0, 1, 11000, 1000, msg.sender, zero);
+    gems[8] = Gem('Blue Diamond', '#348CFC', true, 8**10, 0, 1, 20000, 1000, msg.sender, zero);
+    gems[9] = Gem('Red Diamond', '#BC1C2C', true, 8**11, 0, 1, 50000, 1000, msg.sender, zero);
     emit Create(0);
     emit Create(1);
     emit Create(2);
@@ -65,7 +67,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint diff = gems[kind].difficulty;
     require(val <= type(uint).max / diff, 'salt not good enough');
     gems[kind].difficulty = (diff * gems[kind].multiplier) / 10000 + 1;
-    _mint(msg.sender, kind, 1, '');
+    _mint(msg.sender, kind, gems[kind].gemsPerMine, '');
   }
 
   /// @dev Creates a new gem type. The manager that can craft a portion of gems + can premine
@@ -74,13 +76,14 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     string calldata color,
     uint difficulty,
     uint multiplier,
+    uint gemsPerMine,
     uint craftCap,
     uint premine
   ) external nonReentrant {
     require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     require(craftCap < 1e4, 'bad craft cap');
-    require(premine <= 1e6, 'bad premine');
+    require(premine <= 1e9, 'bad premine');
     uint kind = uint(keccak256(abi.encodePacked(block.chainid, address(this), createNonce++)));
     require(!gems[kind].exists, 'gem kind already exists');
     gems[kind] = Gem({
@@ -89,6 +92,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       exists: true,
       difficulty: difficulty,
       crafted: 0,
+      gemsPerMine: gemsPerMine,
       multiplier: multiplier,
       craftCap: craftCap,
       manager: msg.sender,
@@ -98,7 +102,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     _mint(msg.sender, kind, premine, '');
   }
 
-  /// @dev Transfer management ownership for the given gem kinds to another address.
+  /// @dev Transfers management ownership for the given gem kinds to another address.
   function transferManager(uint[] calldata kinds, address to) external {
     for (uint idx = 0; idx < kinds.length; idx++) {
       uint kind = kinds[idx];
@@ -119,14 +123,14 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     }
   }
 
-  /// @dev Called by LOOT owners to get welcome back of gems. Each loot ID can claim once.
+  /// @dev Called by LOOT owners to get a welcome pack of gems. Each loot ID can claim once.
   function claim(uint lootId) external nonReentrant {
     require(msg.sender == LOOT.ownerOf(lootId), 'not loot owner');
     require(!claimed[lootId], 'already claimed');
     claimed[lootId] = true;
     uint[4] memory kinds = airdrop(lootId);
     for (uint idx = 0; idx < 4; idx++) {
-      _mint(msg.sender, kinds[idx], 1, '');
+      _mint(msg.sender, kinds[idx], gems[kinds[idx]].gemsPerMine, '');
     }
     emit Claim(lootId, msg.sender);
   }
