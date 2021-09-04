@@ -12,6 +12,7 @@ import './Base64.sol';
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   IERC721 constant LOOT = IERC721(0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7);
 
+  event Create(uint indexed kind);
   event Mine(address indexed minter, uint indexed kind);
   event Claim(uint indexed lootId, address indexed claimer);
 
@@ -42,6 +43,16 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     gems[7] = Gem('Pink Diamond', '#FED0FC', true, 8**7, 0, 11000, 1000, msg.sender, address(0));
     gems[8] = Gem('Blue Diamond', '#00A0FF', true, 8**8, 0, 20000, 1000, msg.sender, address(0));
     gems[9] = Gem('Red Diamond', '#C50100', true, 8**9, 0, 50000, 1000, msg.sender, address(0));
+    emit Create(0);
+    emit Create(1);
+    emit Create(2);
+    emit Create(3);
+    emit Create(4);
+    emit Create(5);
+    emit Create(6);
+    emit Create(7);
+    emit Create(8);
+    emit Create(9);
   }
 
   /// @dev Mines new gemstones. Puts kind you want to mine + your salt and tests your luck!
@@ -80,6 +91,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       manager: msg.sender,
       pendingManager: address(0)
     });
+    emit Create(kind);
     _mint(msg.sender, kind, premine, '');
   }
 
