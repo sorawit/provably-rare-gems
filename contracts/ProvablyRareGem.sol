@@ -24,7 +24,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
 
   constructor() ERC1155('n/a') {
     for (uint kind = 0; kind < 10; kind++) {
-      difficulty[kind] = 15**kind;
+      difficulty[kind] = 8**kind;
     }
   }
 
@@ -35,7 +35,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
     for (uint kind = 9; kind >= 0; kind--) {
       uint diff = difficulty[kind];
       if (val <= type(uint).max / diff) {
-        difficulty[kind] = difficulty[kind] * 2**((kind * 3) / 2);
+        difficulty[kind] = (difficulty[kind] * multiplier(kind)) / 10000;
         for (uint id = 0; id <= kind; id++) {
           _mint(msg.sender, id, 1, '');
         }
@@ -51,7 +51,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
     require(msg.sender == LOOT.ownerOf(lootId), 'not loot owner');
     require(claimed[lootId], 'already claimed');
     claimed[lootId] = true;
-    for (uint kind = 0; kind < 6; kind++) {
+    for (uint kind = 0; kind < 5; kind++) {
       _mint(msg.sender, kind, 1, '');
     }
     emit Claim(lootId, msg.sender);
@@ -99,6 +99,12 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
         '#00A0FF',
         '#C50100'
       ][kind];
+  }
+
+  /// @dev Returns the difficulity multiplier once the given gem kind is mined, times 1e4.
+  function multiplier(uint kind) public view returns (uint) {
+    require(kind < 10, 'bad kind');
+    return [10000, 10001, 10005, 10010, 10030, 10100, 10300, 11000, 20000, 50000][kind];
   }
 
   /// @dev Returns your luck given salt. The smaller the value, the better GEMs you will receive.
