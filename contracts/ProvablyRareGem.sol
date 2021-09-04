@@ -66,7 +66,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   function start() external {
     require(block.timestamp >= START_AFTER, 'wait a bit');
     require(hashseed == bytes32(0), 'already started');
-    hashseed = blockhash(block.number);
+    hashseed = blockhash(block.number - 1);
   }
 
   /// @dev Mines new gemstones. Puts kind you want to mine + your salt and tests your luck!
