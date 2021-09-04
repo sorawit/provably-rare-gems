@@ -7,7 +7,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyG
 
 import './Base64.sol';
 
-/// @title Loot's Proably Rare Gems (for Adventurers)
+/// @title Proably Rare Gems (for Adventurers)
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   IERC721 constant LOOT = IERC721(0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7);
@@ -28,7 +28,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     address pendingManager; // Pending gem manager to be transferred to
   }
 
-  Gem[] public gems;
+  mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
   mapping(uint => bool) public claimed;
 
@@ -160,12 +160,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       nonce[msg.sender],
       salt
     );
-    uint baseLuck = uint(keccak256(data));
-    if (LOOT.balanceOf(msg.sender) > 0) {
-      return baseLuck / 10; // 10x better luck for LOOT owners
-    } else {
-      return baseLuck;
-    }
+    return uint(keccak256(data));
   }
 
   // prettier-ignore
@@ -184,7 +179,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       gems[kind].name,
       '", ',
       '"description" : ',
-      '"Loot\'s Provably Rare Gems (for Adventurers)", ',
+      '"Provably Rare Gems (for Adventurers)", ',
       '"image": "data:image/svg+xml;base64,',
       Base64.encode(bytes(output)),
       '}'
