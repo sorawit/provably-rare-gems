@@ -70,7 +70,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     _mint(msg.sender, kind, gems[kind].gemsPerMine, '');
   }
 
-  /// @dev Creates a new gem type. The manager that can craft a portion of gems + can premine
+  /// @dev Creates a new gem type. The manager can craft a portion of gems + can premine
   function create(
     string calldata name,
     string calldata color,
@@ -149,7 +149,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     }
   }
 
-  /// @dev Called gem manager to craft gems. Can't craft more than supply*craftCap/10000.
+  /// @dev Called by gem manager to craft gems. Can't craft more than supply*craftCap/10000.
   function craft(uint kind, uint amount) external nonReentrant {
     Gem storage gem = gems[kind];
     require(gem.exists, 'gem kind not exist');
