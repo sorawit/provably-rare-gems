@@ -31,6 +31,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
   mapping(uint => bool) public claimed;
+  uint public createNonce;
 
   constructor(address _loot) ERC1155('n/a') {
     LOOT = IERC721(_loot);
@@ -76,10 +77,11 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint craftCap,
     uint premine
   ) external nonReentrant {
-    require(difficulty > 0, 'bad difficulty');
+    require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     require(craftCap < 1e4, 'bad craft cap');
-    uint kind = uint(keccak256(abi.encodePacked(block.chainid, address(this), msg.sender, name)));
+    require(premine <= 1e6, 'bad premine');
+    uint kind = uint(keccak256(abi.encodePacked(block.chainid, address(this), createNonce++)));
     require(!gems[kind].exists, 'gem kind already exists');
     gems[kind] = Gem({
       name: name,
