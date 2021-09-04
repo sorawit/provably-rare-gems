@@ -14,6 +14,9 @@ import './Gov.sol';
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
   IERC721 constant LOOT = IERC721(0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7);
 
+  event Mine(address indexed minter, uint indexed kind);
+  event Claim(uint indexed lootId, address indexed claimer);
+
   mapping(address => uint) public nonce;
   mapping(uint => bool) public claimed;
   uint[10] public crafted;
@@ -25,6 +28,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
     }
   }
 
+  /// @dev Mines new gemstones. Puts your salt and tests your luck!
   function mine(uint salt) external nonReentrant returns (uint) {
     uint val = luck(salt);
     nonce[msg.sender]++;
@@ -35,12 +39,14 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
         for (uint id = 0; id <= kind; id++) {
           _mint(msg.sender, id, 1, '');
         }
+        emit Mine(msg.sender, kind);
         return kind;
       }
     }
     assert(false);
   }
 
+  /// @dev Called by LOOT owners to get welcome back of gems. Each loot ID can claim once.
   function claim(uint lootId) external nonReentrant {
     require(msg.sender == LOOT.ownerOf(lootId), 'not loot owner');
     require(claimed[lootId], 'already claimed');
@@ -48,8 +54,10 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
     for (uint kind = 0; kind < 6; kind++) {
       _mint(msg.sender, kind, 1, '');
     }
+    emit Claim(lootId, msg.sender);
   }
 
+  /// @dev Called by DAO governor to craft gems. Can't craft more than ceil[supply/10].
   function craft(uint kind, uint amount) external gov nonReentrant {
     require(kind < 10, 'bad kind');
     crafted[kind] += amount;
@@ -57,6 +65,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
     require(crafted[kind] <= Math.ceilDiv(totalSupply(kind), 10), 'too many crafts');
   }
 
+  /// @dev Returns name of the given gemstone kind.
   function gem(uint kind) public view returns (string memory) {
     require(kind < 10, 'bad kind');
     return
@@ -74,6 +83,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
       ][kind];
   }
 
+  /// @dev Returns HEX color of the given gemstone kind.
   function color(uint kind) public view returns (string memory) {
     require(kind < 10, 'bad kind');
     return
@@ -91,6 +101,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
       ][kind];
   }
 
+  /// @dev Returns your luck given salt. The smaller the value, the better GEMs you will receive.
   function luck(uint salt) public view returns (uint) {
     bytes memory data = abi.encodePacked(
       block.chainid,
