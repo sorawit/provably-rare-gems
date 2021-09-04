@@ -11,6 +11,7 @@ import './Base64.sol';
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   IERC721 public immutable LOOT;
+  uint public immutable START_AFTER;
 
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
@@ -32,9 +33,11 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
   mapping(uint => bool) public claimed;
+  bytes32 public hashseed;
   uint public createNonce;
 
-  constructor(address _loot) ERC1155('n/a') {
+  constructor(address _loot, uint _startAfter) ERC1155('n/a') {
+    START_AFTER = _startAfter;
     LOOT = IERC721(_loot);
     address zero = address(0);
     gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 64, 10000, 1000, msg.sender, zero);
@@ -59,6 +62,13 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     emit Create(9);
   }
 
+  /// @dev Called by anyone to record block hash, allow gem claims, and start the mining.
+  function start() external {
+    require(block.timestamp >= START_AFTER, 'wait a bit');
+    require(hashseed == bytes32(0), 'already started');
+    hashseed = blockhash(block.number);
+  }
+
   /// @dev Mines new gemstones. Puts kind you want to mine + your salt and tests your luck!
   function mine(uint kind, uint salt) external nonReentrant {
     uint val = luck(kind, salt);
@@ -80,6 +90,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint craftCap,
     uint premine
   ) external nonReentrant {
+    require(hashseed != bytes32(0), 'not yet started');
     require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
@@ -137,10 +148,11 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   }
 
   /// @dev Returns the list of initial GEM distribution for the given loot ID.
-  function airdrop(uint lootId) public pure returns (uint[4] memory kinds) {
+  function airdrop(uint lootId) public view returns (uint[4] memory kinds) {
+    require(hashseed != bytes32(0), 'not yet started');
     uint count = 0;
     for (uint kind = 9; kind > 0; kind--) {
-      uint seed = uint(keccak256(abi.encodePacked(kind, lootId)));
+      uint seed = uint(keccak256(abi.encodePacked(hashseed, kind, lootId)));
       uint mod = [1, 1, 3, 6, 10, 20, 30, 100, 300, 1000][kind];
       if (seed % mod == 0) {
         kinds[count++] = kind;
@@ -161,8 +173,10 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   /// @dev Returns your luck given salt and gem kind. The smaller the value, the more chance to succeed.
   function luck(uint kind, uint salt) public view returns (uint) {
+    require(hashseed != bytes32(0), 'not yet started');
     bytes memory data = abi.encodePacked(
       block.chainid,
+      hashseed,
       address(this),
       msg.sender,
       kind,
