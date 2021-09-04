@@ -41,9 +41,9 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 10030, 1000, msg.sender, address(0));
     gems[5] = Gem('Emerald', '#50C878', true, 8**7, 0, 10100, 1000, msg.sender, address(0));
     gems[6] = Gem('Jadelite', '#00A36C', true, 8**8, 0, 10300, 1000, msg.sender, address(0));
-    gems[7] = Gem('Pink Diamond', '#FED0FC', true, 8**9, 0, 11000, 1000, msg.sender, address(0));
-    gems[8] = Gem('Blue Diamond', '#00A0FF', true, 8**10, 0, 20000, 1000, msg.sender, address(0));
-    gems[9] = Gem('Red Diamond', '#C50100', true, 8**11, 0, 50000, 1000, msg.sender, address(0));
+    gems[7] = Gem('Pink Diamond', '#FC74E4', true, 8**9, 0, 11000, 1000, msg.sender, address(0));
+    gems[8] = Gem('Blue Diamond', '#348CFC', true, 8**10, 0, 20000, 1000, msg.sender, address(0));
+    gems[9] = Gem('Red Diamond', '#BC1C2C', true, 8**11, 0, 50000, 1000, msg.sender, address(0));
     emit Create(0);
     emit Create(1);
     emit Create(2);
