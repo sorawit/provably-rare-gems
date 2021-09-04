@@ -34,16 +34,16 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   constructor(address _loot) ERC1155('n/a') {
     LOOT = IERC721(_loot);
-    gems[0] = Gem('Amethyst', '#9966CC', true, 9**0, 0, 10000, 1000, msg.sender, address(0));
-    gems[1] = Gem('Topaz', '#FFC87C', true, 9**1, 0, 10001, 1000, msg.sender, address(0));
-    gems[2] = Gem('Opal', '#A8C3BC', true, 9**2, 0, 10005, 1000, msg.sender, address(0));
-    gems[3] = Gem('Sapphire', '#0F52BA', true, 9**3, 0, 10010, 1000, msg.sender, address(0));
-    gems[4] = Gem('Ruby', '#E0115F', true, 9**4, 0, 10030, 1000, msg.sender, address(0));
-    gems[5] = Gem('Emerald', '#50C878', true, 9**5, 0, 10100, 1000, msg.sender, address(0));
-    gems[6] = Gem('Jadelite', '#00A36C', true, 9**6, 0, 10300, 1000, msg.sender, address(0));
-    gems[7] = Gem('Pink Diamond', '#FED0FC', true, 9**7, 0, 11000, 1000, msg.sender, address(0));
-    gems[8] = Gem('Blue Diamond', '#00A0FF', true, 9**8, 0, 20000, 1000, msg.sender, address(0));
-    gems[9] = Gem('Red Diamond', '#C50100', true, 9**9, 0, 50000, 1000, msg.sender, address(0));
+    gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 10000, 1000, msg.sender, address(0));
+    gems[1] = Gem('Topaz', '#FFC87C', true, 8**3, 0, 10001, 1000, msg.sender, address(0));
+    gems[2] = Gem('Opal', '#A8C3BC', true, 8**4, 0, 10005, 1000, msg.sender, address(0));
+    gems[3] = Gem('Sapphire', '#0F52BA', true, 8**5, 0, 10010, 1000, msg.sender, address(0));
+    gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 10030, 1000, msg.sender, address(0));
+    gems[5] = Gem('Emerald', '#50C878', true, 8**7, 0, 10100, 1000, msg.sender, address(0));
+    gems[6] = Gem('Jadelite', '#00A36C', true, 8**8, 0, 10300, 1000, msg.sender, address(0));
+    gems[7] = Gem('Pink Diamond', '#FED0FC', true, 8**9, 0, 11000, 1000, msg.sender, address(0));
+    gems[8] = Gem('Blue Diamond', '#00A0FF', true, 8**10, 0, 20000, 1000, msg.sender, address(0));
+    gems[9] = Gem('Red Diamond', '#C50100', true, 8**11, 0, 50000, 1000, msg.sender, address(0));
     emit Create(0);
     emit Create(1);
     emit Create(2);
@@ -63,7 +63,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     require(gems[kind].exists, 'gem kind not exist');
     uint diff = gems[kind].difficulty;
     require(val <= type(uint).max / diff, 'salt not good enough');
-    gems[kind].difficulty = (diff * gems[kind].multiplier) / 10000;
+    gems[kind].difficulty = (diff * gems[kind].multiplier) / 10000 + 1;
     _mint(msg.sender, kind, 1, '');
   }
 
