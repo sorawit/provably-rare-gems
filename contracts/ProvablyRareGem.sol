@@ -13,7 +13,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   IERC721 constant LOOT = IERC721(0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7);
 
   event Create(uint indexed kind);
-  event Mine(address indexed minter, uint indexed kind);
+  event Mine(address indexed miner, uint indexed kind);
   event Claim(uint indexed lootId, address indexed claimer);
 
   struct Gem {
