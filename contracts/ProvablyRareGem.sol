@@ -119,7 +119,8 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   /// @dev Called by LOOT owners to get welcome back of gems. Each loot ID can claim once.
   function claim(uint lootId) external nonReentrant {
     require(msg.sender == LOOT.ownerOf(lootId), 'not loot owner');
-    require(claimed[lootId], 'already claimed');
+    require(!claimed[lootId], 'already claimed');
+    claimed[lootId] = true;
     uint[4] memory kinds = airdrop(lootId);
     for (uint idx = 0; idx < 4; idx++) {
       _mint(msg.sender, kinds[idx], 1, '');
