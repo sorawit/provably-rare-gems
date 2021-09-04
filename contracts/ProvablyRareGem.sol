@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/extensions/ERC1155Supply.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
@@ -10,7 +10,7 @@ import './Base64.sol';
 /// @title Proably Rare Gems (for Adventurers)
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
-  IERC721 public constant LOOT = IERC721(0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7);
+  IERC721 public immutable LOOT;
 
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
@@ -32,7 +32,8 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   mapping(address => uint) public nonce;
   mapping(uint => bool) public claimed;
 
-  constructor() ERC1155('n/a') {
+  constructor(address _loot) ERC1155('n/a') {
+    LOOT = IERC721(_loot);
     gems[0] = Gem('Amethyst', '#9966CC', true, 9**0, 0, 10000, 1000, msg.sender, address(0));
     gems[1] = Gem('Topaz', '#FFC87C', true, 9**1, 0, 10001, 1000, msg.sender, address(0));
     gems[2] = Gem('Opal', '#A8C3BC', true, 9**2, 0, 10005, 1000, msg.sender, address(0));
@@ -56,7 +57,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   }
 
   /// @dev Mines new gemstones. Puts kind you want to mine + your salt and tests your luck!
-  function mine(uint kind, uint salt) external nonReentrant returns (uint) {
+  function mine(uint kind, uint salt) external nonReentrant {
     uint val = luck(kind, salt);
     nonce[msg.sender]++;
     require(gems[kind].exists, 'gem kind not exist');
@@ -129,7 +130,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   }
 
   /// @dev Returns the list of initial GEM distribution for the given loot ID.
-  function airdrop(uint lootId) public view returns (uint[4] memory kinds) {
+  function airdrop(uint lootId) public pure returns (uint[4] memory kinds) {
     uint count = 0;
     for (uint kind = 9; kind > 0; kind--) {
       uint seed = uint(keccak256(abi.encodePacked(kind, lootId)));
