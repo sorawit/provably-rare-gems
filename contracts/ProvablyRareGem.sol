@@ -158,7 +158,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     require(gem.crafted <= (totalSupply(kind) * gem.craftCap) / 10000, 'too many crafts');
   }
 
-  /// @dev Returns your luck given salt. The smaller the value, the better GEMs you will receive.
+  /// @dev Returns your luck given salt and gem kind. The smaller the value, the more chance to succeed.
   function luck(uint kind, uint salt) public view returns (uint) {
     bytes memory data = abi.encodePacked(
       block.chainid,
