@@ -116,7 +116,12 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard, Gov {
       nonce[msg.sender],
       salt
     );
-    return uint(keccak256(data));
+    uint baseLuck = uint(keccak256(data));
+    if (LOOT.balanceOf(msg.sender) > 0) {
+      return baseLuck / 10; // 10x better luck for LOOT owners
+    } else {
+      return baseLuck;
+    }
   }
 
   // prettier-ignore
