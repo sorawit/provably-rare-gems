@@ -7,7 +7,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyG
 
 import './Base64.sol';
 
-/// @title Proably Rare Gems
+/// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   event Create(uint indexed kind);

@@ -6,6 +6,8 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
 import './ProvablyRareGem.sol';
 
+/// @title LOOT GEM Crafter
+/// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract LOOTGemCrafter is Ownable, ReentrancyGuard {
   IERC721 public immutable NFT;
   ProvablyRareGem public immutable GEM;
