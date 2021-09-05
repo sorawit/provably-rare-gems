@@ -39,27 +39,16 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   constructor(address _loot, uint _startAfter) ERC1155('n/a') {
     START_AFTER = _startAfter;
     LOOT = IERC721(_loot);
-    address zero = address(0);
-    gems[0] = Gem('Amethyst', '#9966CC', true, 8**2, 0, 64, 10000, 1000, msg.sender, zero);
-    gems[1] = Gem('Topaz', '#FFC87C', true, 8**3, 0, 32, 10001, 1000, msg.sender, zero);
-    gems[2] = Gem('Opal', '#A8C3BC', true, 8**4, 0, 16, 10005, 1000, msg.sender, zero);
-    gems[3] = Gem('Sapphire', '#0F52BA', true, 8**5, 0, 8, 10010, 1000, msg.sender, zero);
-    gems[4] = Gem('Ruby', '#E0115F', true, 8**6, 0, 4, 10030, 1000, msg.sender, zero);
-    gems[5] = Gem('Emerald', '#50C878', true, 8**7, 0, 2, 10100, 1000, msg.sender, zero);
-    gems[6] = Gem('Jadeite', '#00A36C', true, 8**8, 0, 1, 10300, 1000, msg.sender, zero);
-    gems[7] = Gem('Pink Diamond', '#FC74E4', true, 8**9, 0, 1, 11000, 1000, msg.sender, zero);
-    gems[8] = Gem('Blue Diamond', '#348CFC', true, 8**10, 0, 1, 20000, 1000, msg.sender, zero);
-    gems[9] = Gem('Red Diamond', '#BC1C2C', true, 8**11, 0, 1, 50000, 1000, msg.sender, zero);
-    emit Create(0);
-    emit Create(1);
-    emit Create(2);
-    emit Create(3);
-    emit Create(4);
-    emit Create(5);
-    emit Create(6);
-    emit Create(7);
-    emit Create(8);
-    emit Create(9);
+    _create(0, 'Amethyst', '#9966CC', 8**2, 64, 10000, 1000);
+    _create(1, 'Topaz', '#FFC87C', 8**3, 32, 10001, 1000);
+    _create(2, 'Opal', '#A8C3BC', 8**4, 16, 10005, 1000);
+    _create(3, 'Sapphire', '#0F52BA', 8**5, 8, 10010, 1000);
+    _create(4, 'Ruby', '#E0115F', 8**6, 4, 10030, 1000);
+    _create(5, 'Emerald', '#50C878', 8**7, 2, 10100, 1000);
+    _create(6, 'Jadeite', '#00A36C', 8**8, 1, 10300, 1000);
+    _create(7, 'Pink Diamond', '#FC74E4', 8**9, 1, 11000, 1000);
+    _create(8, 'Blue Diamond', '#348CFC', 8**10, 1, 20000, 1000);
+    _create(9, 'Red Diamond', '#BC1C2C', 8**11, 1, 50000, 1000);
   }
 
   /// @dev Called by anyone to record block hash, allow gem claims, and start the mining.
@@ -97,20 +86,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     require(craftCap < 1e4, 'bad craft cap');
     require(premine <= 1e9, 'bad premine');
     uint kind = uint(keccak256(abi.encodePacked(block.chainid, address(this), createNonce++)));
-    require(!gems[kind].exists, 'gem kind already exists');
-    gems[kind] = Gem({
-      name: name,
-      color: color,
-      exists: true,
-      difficulty: difficulty,
-      crafted: 0,
-      gemsPerMine: gemsPerMine,
-      multiplier: multiplier,
-      craftCap: craftCap,
-      manager: msg.sender,
-      pendingManager: address(0)
-    });
-    emit Create(kind);
+    _create(kind, name, color, difficulty, gemsPerMine, multiplier, craftCap);
     _mint(msg.sender, kind, premine, '');
   }
 
@@ -184,6 +160,32 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       salt
     );
     return uint(keccak256(data));
+  }
+
+  /// @dev Internal function for creating a new gem kind
+  function _create(
+    uint kind,
+    string memory name,
+    string memory color,
+    uint difficulty,
+    uint gemsPerMine,
+    uint multiplier,
+    uint craftCap
+  ) internal {
+    require(!gems[kind].exists, 'gem kind already exists');
+    gems[kind] = Gem({
+      name: name,
+      color: color,
+      exists: true,
+      difficulty: difficulty,
+      crafted: 0,
+      gemsPerMine: gemsPerMine,
+      multiplier: multiplier,
+      craftCap: craftCap,
+      manager: msg.sender,
+      pendingManager: address(0)
+    });
+    emit Create(kind);
   }
 
   // prettier-ignore
