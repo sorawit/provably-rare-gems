@@ -10,52 +10,44 @@ import './Base64.sol';
 /// @title Proably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
-  IERC721 public immutable LOOT;
-  uint public immutable START_AFTER;
-
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
-  event Claim(uint indexed lootId, address indexed claimer);
 
   struct Gem {
     string name; // Gem name
     string color; // Gem color
-    bool exists; // True if exist, False otherwise
+    bytes32 entropy; // Additional mining entropy. bytes32(0) means can't mine.
     uint difficulty; // Current difficulity level. Must be non decreasing
-    uint crafted; // Amount of gems crafted by the manager
     uint gemsPerMine; // Amount of gems to distribute per mine
     uint multiplier; // Difficulty multiplier times 1e4. Must be between 1e4 and 1e10
-    uint craftCap; // Allocation ratio to gem manager. Must be between 0 and 1e4
+    address crafter; // Address that can craft gems
     address manager; // Current gem manager
     address pendingManager; // Pending gem manager to be transferred to
+    bool exists; // True if exist, False otherwise
   }
 
   mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
-  mapping(uint => bool) public claimed;
-  bytes32 public hashseed;
   uint public createNonce;
 
-  constructor(address _loot, uint _startAfter) ERC1155('n/a') {
-    START_AFTER = _startAfter;
-    LOOT = IERC721(_loot);
-    _create(0, 'Amethyst', '#9966CC', 8**2, 64, 10000, 1000);
-    _create(1, 'Topaz', '#FFC87C', 8**3, 32, 10001, 1000);
-    _create(2, 'Opal', '#A8C3BC', 8**4, 16, 10005, 1000);
-    _create(3, 'Sapphire', '#0F52BA', 8**5, 8, 10010, 1000);
-    _create(4, 'Ruby', '#E0115F', 8**6, 4, 10030, 1000);
-    _create(5, 'Emerald', '#50C878', 8**7, 2, 10100, 1000);
-    _create(6, 'Jadeite', '#00A36C', 8**8, 1, 10300, 1000);
-    _create(7, 'Pink Diamond', '#FC74E4', 8**9, 1, 11000, 1000);
-    _create(8, 'Blue Diamond', '#348CFC', 8**10, 1, 20000, 1000);
-    _create(9, 'Red Diamond', '#BC1C2C', 8**11, 1, 50000, 1000);
-  }
+  constructor() ERC1155('GEM') {}
 
-  /// @dev Called by anyone to record block hash, allow gem claims, and start the mining.
-  function start() external {
-    require(block.timestamp >= START_AFTER, 'wait a bit');
-    require(hashseed == bytes32(0), 'already started');
-    hashseed = blockhash(block.number - 1);
+  /// @dev Creates a new gem type. The manager can craft a portion of gems + can premine
+  function create(
+    string calldata name,
+    string calldata color,
+    uint difficulty,
+    uint multiplier,
+    uint gemsPerMine,
+    address crafter,
+    address manager
+  ) external nonReentrant returns (uint) {
+    require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
+    require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
+    require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
+    uint kind = createNonce++;
+    _create(kind, name, color, difficulty, gemsPerMine, multiplier, crafter, manager);
+    return kind;
   }
 
   /// @dev Mines new gemstones. Puts kind you want to mine + your salt and tests your luck!
@@ -69,25 +61,51 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     _mint(msg.sender, kind, gems[kind].gemsPerMine, '');
   }
 
-  /// @dev Creates a new gem type. The manager can craft a portion of gems + can premine
-  function create(
-    string calldata name,
-    string calldata color,
+  /// @dev Updates gem mining entropy. Can be called by gem manager or crafter.
+  function updateEntropy(uint kind, bytes32 entropy) external {
+    require(gems[kind].exists, 'gem kind not exist');
+    require(gems[kind].manager == msg.sender || gems[kind].crafter == msg.sender, 'unauthorized');
+    gems[kind].entropy = entropy;
+  }
+
+  /// @dev Updates gem metadata info. Must only be called by the gem manager.
+  function updateGemInfo(
+    uint kind,
+    string memory name,
+    string memory color
+  ) external {
+    require(gems[kind].exists, 'gem kind not exist');
+    require(gems[kind].manager == msg.sender, 'not gem manager');
+    gems[kind].name = name;
+    gems[kind].color = color;
+  }
+
+  /// @dev Updates gem mining information. Must only be called by the gem manager.
+  function updateMiningData(
+    uint kind,
     uint difficulty,
     uint multiplier,
-    uint gemsPerMine,
-    uint craftCap,
-    uint premine
-  ) external nonReentrant {
-    require(hashseed != bytes32(0), 'not yet started');
+    uint gemsPerMine
+  ) external {
+    require(gems[kind].exists, 'gem kind not exist');
+    require(gems[kind].manager == msg.sender, 'not gem manager');
     require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
-    require(craftCap < 1e4, 'bad craft cap');
-    require(premine <= 1e9, 'bad premine');
-    uint kind = uint(keccak256(abi.encodePacked(block.chainid, address(this), createNonce++)));
-    _create(kind, name, color, difficulty, gemsPerMine, multiplier, craftCap);
-    _mint(msg.sender, kind, premine, '');
+    gems[kind].difficulty = difficulty;
+    gems[kind].multiplier = multiplier;
+    gems[kind].gemsPerMine = gemsPerMine;
+  }
+
+  /// @dev Renounce management ownership for the given gem kinds.
+  function renounceManager(uint[] calldata kinds) external {
+    for (uint idx = 0; idx < kinds.length; idx++) {
+      uint kind = kinds[idx];
+      require(gems[kind].exists, 'gem kind not exist');
+      require(gems[kind].manager == msg.sender, 'not gem manager');
+      gems[kind].manager = address(0);
+      gems[kind].pendingManager = address(0);
+    }
   }
 
   /// @dev Transfers management ownership for the given gem kinds to another address.
@@ -111,48 +129,26 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     }
   }
 
-  /// @dev Called by LOOT owners to get a welcome pack of gems. Each loot ID can claim once.
-  function claim(uint lootId) external nonReentrant {
-    require(msg.sender == LOOT.ownerOf(lootId), 'not loot owner');
-    require(!claimed[lootId], 'already claimed');
-    claimed[lootId] = true;
-    uint[4] memory kinds = airdrop(lootId);
-    for (uint idx = 0; idx < 4; idx++) {
-      _mint(msg.sender, kinds[idx], gems[kinds[idx]].gemsPerMine, '');
-    }
-    emit Claim(lootId, msg.sender);
+  /// @dev Mints gems by crafter. Hopefully, crafter is a good guy. Craft gemsPerMine if amount = 0.
+  function craft(
+    uint kind,
+    uint amount,
+    address to
+  ) external nonReentrant {
+    require(gems[kind].exists, 'gem kind not exist');
+    require(gems[kind].crafter == msg.sender, 'not gem crafter');
+    uint realAmount = amount == 0 ? gems[kind].gemsPerMine : amount;
+    _mint(to, kind, amount, '');
   }
 
-  /// @dev Returns the list of initial GEM distribution for the given loot ID.
-  function airdrop(uint lootId) public view returns (uint[4] memory kinds) {
-    require(hashseed != bytes32(0), 'not yet started');
-    uint count = 0;
-    for (uint kind = 9; kind > 0; kind--) {
-      uint seed = uint(keccak256(abi.encodePacked(hashseed, kind, lootId)));
-      uint mod = [1, 1, 3, 6, 10, 20, 30, 100, 300, 1000][kind];
-      if (seed % mod == 0) {
-        kinds[count++] = kind;
-      }
-      if (count == 4) break;
-    }
-  }
-
-  /// @dev Called by gem manager to craft gems. Can't craft more than supply*craftCap/10000.
-  function craft(uint kind, uint amount) external nonReentrant {
-    Gem storage gem = gems[kind];
-    require(gem.exists, 'gem kind not exist');
-    require(gem.manager == msg.sender, 'not gem manager');
-    gem.crafted += amount;
-    _mint(msg.sender, kind, amount, '');
-    require(gem.crafted <= (totalSupply(kind) * gem.craftCap) / 10000, 'too many crafts');
-  }
-
-  /// @dev Returns your luck given salt and gem kind. The smaller the value, the more chance to succeed.
+  /// @dev Returns your luck given salt and gem kind. The smaller the value, the more success chance.
   function luck(uint kind, uint salt) public view returns (uint) {
-    require(hashseed != bytes32(0), 'not yet started');
+    require(gems[kind].exists, 'gem kind not exist');
+    bytes32 entropy = gems[kind].entropy;
+    require(entropy != bytes32(0), 'no entropy');
     bytes memory data = abi.encodePacked(
       block.chainid,
-      hashseed,
+      entropy,
       address(this),
       msg.sender,
       kind,
@@ -170,20 +166,21 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint difficulty,
     uint gemsPerMine,
     uint multiplier,
-    uint craftCap
+    address crafter,
+    address manager
   ) internal {
     require(!gems[kind].exists, 'gem kind already exists');
     gems[kind] = Gem({
       name: name,
       color: color,
-      exists: true,
+      entropy: bytes32(0),
       difficulty: difficulty,
-      crafted: 0,
       gemsPerMine: gemsPerMine,
       multiplier: multiplier,
-      craftCap: craftCap,
-      manager: msg.sender,
-      pendingManager: address(0)
+      crafter: crafter,
+      manager: manager,
+      pendingManager: address(0),
+      exists: true
     });
     emit Create(kind);
   }
