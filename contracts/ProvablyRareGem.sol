@@ -87,7 +87,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   ) external {
     require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].manager == msg.sender, 'not gem manager');
-    require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
+    require(difficulty > 0 && difficulty <= 2**128, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
     gems[kind].difficulty = difficulty;
