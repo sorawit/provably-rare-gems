@@ -44,6 +44,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     require(difficulty > 0 && difficulty <= 2**128, 'bad difficulty');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
+    require(manager != address(0), 'bad manager');
     return _create(name, color, difficulty, gemsPerMine, multiplier, crafter, manager);
   }
 
@@ -68,8 +69,8 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   /// @dev Updates gem metadata info. Must only be called by the gem manager.
   function updateGemInfo(
     uint kind,
-    string memory name,
-    string memory color
+    string calldata name,
+    string calldata color
   ) external {
     require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].manager == msg.sender, 'not gem manager');
@@ -102,6 +103,16 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       require(gems[kind].manager == msg.sender, 'not gem manager');
       gems[kind].manager = address(0);
       gems[kind].pendingManager = address(0);
+    }
+  }
+
+  /// @dev Updates gem crafter. Must only be called by the gem manager.
+  function updateCrafter(uint[] calldata kinds, address crafter) external {
+    for (uint idx = 0; idx < kinds.length; idx++) {
+      uint kind = kinds[idx];
+      require(kind < gemCount, 'gem kind not exist');
+      require(gems[kind].manager == msg.sender, 'not gem manager');
+      gems[kind].crafter = crafter;
     }
   }
 
