@@ -36,14 +36,14 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     string calldata name,
     string calldata color,
     uint difficulty,
-    uint multiplier,
     uint gemsPerMine,
+    uint multiplier,
     address crafter,
     address manager
-  ) external nonReentrant returns (uint) {
-    require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
-    require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
+  ) external returns (uint) {
+    require(difficulty > 0 && difficulty <= 2**128, 'bad difficulty');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
+    require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     return _create(name, color, difficulty, gemsPerMine, multiplier, crafter, manager);
   }
 
@@ -135,7 +135,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].crafter == msg.sender, 'not gem crafter');
     uint realAmount = amount == 0 ? gems[kind].gemsPerMine : amount;
-    _mint(to, kind, amount, '');
+    _mint(to, kind, realAmount, '');
   }
 
   /// @dev Returns your luck given salt and gem kind. The smaller the value, the more success chance.
