@@ -23,12 +23,11 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     address crafter; // Address that can craft gems
     address manager; // Current gem manager
     address pendingManager; // Pending gem manager to be transferred to
-    bool exists; // True if exist, False otherwise
   }
 
   mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
-  uint public createNonce;
+  uint public gemCount;
 
   constructor() ERC1155('GEM') {}
 
@@ -45,16 +44,14 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
-    uint kind = createNonce++;
-    _create(kind, name, color, difficulty, gemsPerMine, multiplier, crafter, manager);
-    return kind;
+    return _create(name, color, difficulty, gemsPerMine, multiplier, crafter, manager);
   }
 
   /// @dev Mines new gemstones. Puts kind you want to mine + your salt and tests your luck!
   function mine(uint kind, uint salt) external nonReentrant {
     uint val = luck(kind, salt);
     nonce[msg.sender]++;
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     uint diff = gems[kind].difficulty;
     require(val <= type(uint).max / diff, 'salt not good enough');
     gems[kind].difficulty = (diff * gems[kind].multiplier) / 10000 + 1;
@@ -63,7 +60,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   /// @dev Updates gem mining entropy. Can be called by gem manager or crafter.
   function updateEntropy(uint kind, bytes32 entropy) external {
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].manager == msg.sender || gems[kind].crafter == msg.sender, 'unauthorized');
     gems[kind].entropy = entropy;
   }
@@ -74,7 +71,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     string memory name,
     string memory color
   ) external {
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].manager == msg.sender, 'not gem manager');
     gems[kind].name = name;
     gems[kind].color = color;
@@ -87,7 +84,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint multiplier,
     uint gemsPerMine
   ) external {
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].manager == msg.sender, 'not gem manager');
     require(difficulty > 0 && difficulty <= 2**64, 'bad difficulty');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
@@ -101,7 +98,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   function renounceManager(uint[] calldata kinds) external {
     for (uint idx = 0; idx < kinds.length; idx++) {
       uint kind = kinds[idx];
-      require(gems[kind].exists, 'gem kind not exist');
+      require(kind < gemCount, 'gem kind not exist');
       require(gems[kind].manager == msg.sender, 'not gem manager');
       gems[kind].manager = address(0);
       gems[kind].pendingManager = address(0);
@@ -112,7 +109,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   function transferManager(uint[] calldata kinds, address to) external {
     for (uint idx = 0; idx < kinds.length; idx++) {
       uint kind = kinds[idx];
-      require(gems[kind].exists, 'gem kind not exist');
+      require(kind < gemCount, 'gem kind not exist');
       require(gems[kind].manager == msg.sender, 'not gem manager');
       gems[kind].pendingManager = to;
     }
@@ -122,7 +119,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   function acceptManager(uint[] calldata kinds) external {
     for (uint idx = 0; idx < kinds.length; idx++) {
       uint kind = kinds[idx];
-      require(gems[kind].exists, 'gem kind not exist');
+      require(kind < gemCount, 'gem kind not exist');
       require(gems[kind].pendingManager == msg.sender, 'not gem manager');
       gems[kind].pendingManager = address(0);
       gems[kind].manager = msg.sender;
@@ -135,7 +132,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint amount,
     address to
   ) external nonReentrant {
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     require(gems[kind].crafter == msg.sender, 'not gem crafter');
     uint realAmount = amount == 0 ? gems[kind].gemsPerMine : amount;
     _mint(to, kind, amount, '');
@@ -143,7 +140,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   /// @dev Returns your luck given salt and gem kind. The smaller the value, the more success chance.
   function luck(uint kind, uint salt) public view returns (uint) {
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     bytes32 entropy = gems[kind].entropy;
     require(entropy != bytes32(0), 'no entropy');
     bytes memory data = abi.encodePacked(
@@ -160,7 +157,6 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   /// @dev Internal function for creating a new gem kind
   function _create(
-    uint kind,
     string memory name,
     string memory color,
     uint difficulty,
@@ -168,8 +164,8 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     uint multiplier,
     address crafter,
     address manager
-  ) internal {
-    require(!gems[kind].exists, 'gem kind already exists');
+  ) internal returns (uint) {
+    uint kind = gemCount++;
     gems[kind] = Gem({
       name: name,
       color: color,
@@ -179,15 +175,15 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       multiplier: multiplier,
       crafter: crafter,
       manager: manager,
-      pendingManager: address(0),
-      exists: true
+      pendingManager: address(0)
     });
     emit Create(kind);
+    return kind;
   }
 
   // prettier-ignore
   function uri(uint kind) public view override returns (string memory) {
-    require(gems[kind].exists, 'gem kind not exist');
+    require(kind < gemCount, 'gem kind not exist');
     string memory output = string(abi.encodePacked(
         '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: ',
         gems[kind].color,
