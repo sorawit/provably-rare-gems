@@ -7,7 +7,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyG
 
 import './Base64.sol';
 
-/// @title Proably Rare Gems (for Adventurers)
+/// @title Proably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   IERC721 public immutable LOOT;
@@ -202,7 +202,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       gems[kind].name,
       '", ',
       '"description" : ',
-      '"Provably Rare Gems (for Adventurers)", ',
+      '"Provably Rare Gems", ',
       '"image": "data:image/svg+xml;base64,',
       Base64.encode(bytes(output)),
       '}'
