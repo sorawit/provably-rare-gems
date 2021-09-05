@@ -78,12 +78,10 @@ contract LOOTGemCrafter is Ownable, ReentrancyGuard {
     _claim(id);
   }
 
-  /// @dev Called by NFT owners to get a welcome pack of gems for multiple NFTs. Ignore the ones claimed.
+  /// @dev Called by NFT owners to get a welcome pack of gems for multiple NFTs.
   function multiClaim(uint[] calldata ids) external nonReentrant {
     for (uint idx = 0; idx < ids.length; idx++) {
-      if (!claimed[ids[idx]]) {
-        _claim(ids[idx]);
-      }
+      _claim(ids[idx]);
     }
   }
 
