@@ -80,7 +80,7 @@ contract LOOTGemCrafter is Ownable, ReentrancyGuard {
     claimed[id] = true;
     uint[4] memory kinds = airdrop(id);
     for (uint idx = 0; idx < 4; idx++) {
-      GEM.craft(FST_KIND + kinds[idx], 0, msg.sender);
+      GEM.craft(kinds[idx], 0, msg.sender);
     }
     emit Claim(id, msg.sender);
   }
