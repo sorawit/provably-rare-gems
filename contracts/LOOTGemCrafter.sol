@@ -75,6 +75,19 @@ contract LOOTGemCrafter is Ownable, ReentrancyGuard {
 
   /// @dev Called by NFT owners to get a welcome pack of gems. Each NFT ID can claim once.
   function claim(uint id) external nonReentrant {
+    _claim(id);
+  }
+
+  /// @dev Called by NFT owners to get a welcome pack of gems for multiple NFTs. Ignore the ones claimed.
+  function multiClaim(uint[] calldata ids) external nonReentrant {
+    for (uint idx = 0; idx < ids.length; idx++) {
+      if (!claimed[ids[idx]]) {
+        _claim(ids[idx]);
+      }
+    }
+  }
+
+  function _claim(uint id) internal {
     require(msg.sender == NFT.ownerOf(id), 'not nft owner');
     require(!claimed[id], 'already claimed');
     claimed[id] = true;
