@@ -62,10 +62,10 @@ contract LOOTGemCrafter is Ownable, ReentrancyGuard {
     for (uint idx = 0; idx < 4; idx++) {
       kinds[idx] = FST_KIND;
     }
-    for (uint kind = 9; kind > 0; kind--) {
-      uint seed = uint(keccak256(abi.encodePacked(hashseed, kind, id)));
-      if (seed % chances[kind] == 0) {
-        kinds[count++] = kind;
+    for (uint offset = 9; offset > 0; offset--) {
+      uint seed = uint(keccak256(abi.encodePacked(hashseed, offset, id)));
+      if (seed % chances[offset] == 0) {
+        kinds[count++] = FST_KIND + offset;
       }
       if (count == 4) break;
     }
