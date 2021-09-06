@@ -3,7 +3,7 @@ pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/transparent/TransparentUpgradeableProxy.sol';
 
-contract TransparentUpgradeableProxyImpl is TransparentUpgradeableProxy {
+contract ProvablyRareGemProxy is TransparentUpgradeableProxy {
   constructor(
     address _logic,
     address admin_,
