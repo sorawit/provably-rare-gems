@@ -27,7 +27,7 @@ contract BLOOTGemCrafter is Ownable, ReentrancyGuard {
     GEM = _gem;
     FIRST_KIND = _gem.gemCount();
     _gem.create('Violet Useless Rock of ALPHA', '#9966CC', 8**2, 64, 10000, address(this), msg.sender);
-    _gem.create('Goldy Pebble of GM', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
+    _gem.create('Goldy Pebble of LOOKS RARE', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
     _gem.create('Translucent River Rock of HODL', '#A8C3BC', 8**4, 16, 10005, address(this), msg.sender);
     _gem.create('Blue Ice Scrap of UP ONLY', '#0F52BA', 8**5, 8, 10010, address(this), msg.sender);
     _gem.create('Blushing Rock of PROBABLY NOTHING', '#E0115F', 8**6, 4, 10030, address(this), msg.sender);
