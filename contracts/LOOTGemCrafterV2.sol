@@ -3,27 +3,35 @@ pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/access/Ownable.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/utils/ERC1155Receiver.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
 import './ProvablyRareGem.sol';
+import './LOOTGemCrafter.sol';
 
 /// @title LOOT GEM Crafter
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
-contract LOOTGemCrafterV2 is Ownable, ReentrancyGuard {
+contract LOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
   IERC721 public immutable NFT;
   ProvablyRareGem public immutable GEM;
   uint public immutable FIRST_KIND;
+  bytes32 public immutable hashseed;
+  LOOTGemCrafter public immutable old;
 
-  event Start(bytes32 hashseed);
   event Craft(uint indexed kind, uint amount);
   event Claim(uint indexed id, address indexed claimer);
 
-  bytes32 public hashseed;
   mapping(uint => uint) public crafted;
   mapping(uint => bool) public claimed;
 
-  constructor(IERC721 _nft, ProvablyRareGem _gem) {
+  constructor(
+    IERC721 _nft,
+    ProvablyRareGem _gem,
+    LOOTGemCrafter _old
+  ) {
     NFT = _nft;
     GEM = _gem;
+    old = _old;
+    hashseed = _old.hashseed();
     FIRST_KIND = _gem.gemCount();
     _gem.create('Amethyst', '#9966CC', 8**2, 64, 10000, address(this), msg.sender);
     _gem.create('Topaz', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
@@ -39,8 +47,6 @@ contract LOOTGemCrafterV2 is Ownable, ReentrancyGuard {
 
   /// @dev Called once to start the claim and generate hash seed.
   function start() external onlyOwner {
-    require(hashseed == bytes32(0), 'already started');
-    hashseed = blockhash(block.number - 1);
     for (uint offset = 0; offset < 10; offset++) {
       GEM.updateEntropy(FIRST_KIND + offset, hashseed);
     }
@@ -86,12 +92,38 @@ contract LOOTGemCrafterV2 is Ownable, ReentrancyGuard {
 
   function _claim(uint id) internal {
     require(msg.sender == NFT.ownerOf(id), 'not nft owner');
-    require(!claimed[id], 'already claimed');
+    require(!claimed[id] && !old.claimed(id), 'already claimed');
     claimed[id] = true;
     uint[4] memory kinds = airdrop(id);
     for (uint idx = 0; idx < 4; idx++) {
       GEM.craft(kinds[idx], 0, msg.sender);
     }
     emit Claim(id, msg.sender);
+  }
+
+  function onERC1155Received(
+    address operator,
+    address from,
+    uint id,
+    uint value,
+    bytes calldata data
+  ) external override returns (bytes4) {
+    revert('unsupported');
+  }
+
+  function onERC1155BatchReceived(
+    address operator,
+    address from,
+    uint[] calldata ids,
+    uint[] calldata values,
+    bytes calldata data
+  ) external override nonReentrant returns (bytes4) {
+    require(msg.sender == address(old.GEM()), 'bad token');
+    for (uint idx = 0; idx < ids.length; idx++) {
+      uint kind = ids[idx];
+      require(kind >= FIRST_KIND && kind < FIRST_KIND + 10, 'bad kind');
+      GEM.craft(kind, values[idx], from);
+    }
+    return this.onERC1155BatchReceived.selector;
   }
 }
