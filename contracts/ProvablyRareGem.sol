@@ -131,7 +131,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     for (uint idx = 0; idx < kinds.length; idx++) {
       uint kind = kinds[idx];
       require(kind < gemCount, 'gem kind not exist');
-      require(gems[kind].pendingManager == msg.sender, 'not gem manager');
+      require(gems[kind].pendingManager == msg.sender, 'not pending manager');
       gems[kind].pendingManager = address(0);
       gems[kind].manager = msg.sender;
     }
