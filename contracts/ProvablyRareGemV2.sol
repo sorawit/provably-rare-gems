@@ -9,7 +9,7 @@ import './Base64.sol';
 
 /// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
-contract ProvablyRareGem is Initializable, ERC1155Supply {
+contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
   string public name;
