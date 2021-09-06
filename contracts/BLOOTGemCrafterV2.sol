@@ -123,6 +123,7 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
     for (uint idx = 0; idx < ids.length; idx++) {
       uint kind = ids[idx];
       require(kind >= FIRST_KIND && kind < FIRST_KIND + 10, 'bad kind');
+      require(values[idx] > 0, 'no value');
       GEM.craft(kind, values[idx], from);
     }
     return this.onERC1155BatchReceived.selector;
