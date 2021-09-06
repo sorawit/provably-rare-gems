@@ -3,16 +3,16 @@ pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/extensions/ERC1155Supply.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
-import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
 
 import './Base64.sol';
 
 /// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
-contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
+contract ProvablyRareGem is Initializable, ERC1155Supply {
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
-  string public constant name = 'Provably Rare Gem';
+  string public name;
 
   struct Gem {
     string name; // Gem name
@@ -26,11 +26,25 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
     address pendingManager; // Pending gem manager to be transferred to
   }
 
+  uint private lock;
   mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
   uint public gemCount;
 
   constructor() ERC1155('GEM') {}
+
+  modifier nonReentrant() {
+    require(lock == 1, '!lock');
+    lock = 2;
+    _;
+    lock = 1;
+  }
+
+  /// @dev Initializes the contract.
+  function initialize() external initializer {
+    name = 'Provably Rare Gem';
+    lock = 1;
+  }
 
   /// @dev Creates a new gem type. The manager can craft a portion of gems + can premine
   function create(
@@ -169,7 +183,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
 
   /// @dev Internal function for creating a new gem kind
   function _create(
-    string memory name,
+    string memory gemName,
     string memory color,
     uint difficulty,
     uint gemsPerMine,
@@ -179,7 +193,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   ) internal returns (uint) {
     uint kind = gemCount++;
     gems[kind] = Gem({
-      name: name,
+      name: gemName,
       color: color,
       entropy: bytes32(0),
       difficulty: difficulty,
