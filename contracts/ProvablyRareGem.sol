@@ -12,6 +12,7 @@ import './Base64.sol';
 contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
+  string public constant name = 'Provably Rare Gem';
 
   struct Gem {
     string name; // Gem name
@@ -211,7 +212,7 @@ contract ProvablyRareGem is ERC1155Supply, ReentrancyGuard {
       '"Provably Rare Gems", ',
       '"image": "data:image/svg+xml;base64,',
       Base64.encode(bytes(output)),
-      '}'
+      '"}'
     ))));
     return string(abi.encodePacked('data:application/json;base64,', json));
   }
