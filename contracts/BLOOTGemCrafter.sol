@@ -6,9 +6,9 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
 import './ProvablyRareGem.sol';
 
-/// @title LOOT GEM Crafter
+/// @title BLOOT GEM Crafter
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
-contract LOOTGemCrafter is Ownable, ReentrancyGuard {
+contract BLOOTGemCrafter is Ownable, ReentrancyGuard {
   IERC721 public immutable NFT;
   ProvablyRareGem public immutable GEM;
   uint public immutable FIRST_KIND;
@@ -21,20 +21,21 @@ contract LOOTGemCrafter is Ownable, ReentrancyGuard {
   mapping(uint => uint) public crafted;
   mapping(uint => bool) public claimed;
 
+  // prettier-ignore
   constructor(IERC721 _nft, ProvablyRareGem _gem) {
     NFT = _nft;
     GEM = _gem;
     FIRST_KIND = _gem.gemCount();
-    _gem.create('Amethyst', '#9966CC', 8**2, 64, 10000, address(this), msg.sender);
-    _gem.create('Topaz', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
-    _gem.create('Opal', '#A8C3BC', 8**4, 16, 10005, address(this), msg.sender);
-    _gem.create('Sapphire', '#0F52BA', 8**5, 8, 10010, address(this), msg.sender);
-    _gem.create('Ruby', '#E0115F', 8**6, 4, 10030, address(this), msg.sender);
-    _gem.create('Emerald', '#50C878', 8**7, 2, 10100, address(this), msg.sender);
-    _gem.create('Pink Diamond', '#FC74E4', 8**8, 1, 10300, address(this), msg.sender);
-    _gem.create('The Dragon Jade', '#00A36C', 8**9, 1, 11000, address(this), msg.sender);
-    _gem.create('Azure Skystone', '#348CFC', 8**10, 1, 20000, address(this), msg.sender);
-    _gem.create('Scarlet Bloodstone', '#BC1C2C', 8**11, 1, 50000, address(this), msg.sender);
+    _gem.create('Violet Useless Rock of ALPHA', '#9966CC', 8**2, 64, 10000, address(this), msg.sender);
+    _gem.create('Goldy Pebble of GM', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
+    _gem.create('Translucent River Rock of HODL', '#A8C3BC', 8**4, 16, 10005, address(this), msg.sender);
+    _gem.create('Blue Ice Scrap of UP ONLY', '#0F52BA', 8**5, 8, 10010, address(this), msg.sender);
+    _gem.create('Blushing Rock of PROBABLY NOTHING', '#E0115F', 8**6, 4, 10030, address(this), msg.sender);
+    _gem.create('Mossy Riverside Pebble of LFG', '#50C878', 8**7, 2, 10100, address(this), msg.sender);
+    _gem.create('The Lovely Rock of GOAT', '#FC74E4', 8**8, 1, 10300, address(this), msg.sender);
+    _gem.create('#00FF00 of OG', '#00FF00', 8**9, 1, 11000, address(this), msg.sender);
+    _gem.create('#0000FF of WAGMI', '#0000FF', 8**10, 1, 20000, address(this), msg.sender);
+    _gem.create('#FF0000 of THE MOON', '#FF0000', 8**11, 1, 50000, address(this), msg.sender);
   }
 
   /// @dev Called once to start the claim and generate hash seed.
