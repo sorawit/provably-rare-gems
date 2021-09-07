@@ -49,14 +49,18 @@ contract BasicGemCrafter is Ownable, Pausable {
     _unpause();
   }
 
-  /// @dev Called once to start mining for the given offset.
-  function start(uint kind) external onlyOwner whenNotPaused {
-    GEM.updateEntropy(kind, blockhash(block.number - 1));
+  /// @dev Called once to start mining for the given kinds.
+  function start(uint[] calldata kinds) external onlyOwner whenNotPaused {
+    for (uint idx = 0; idx < kinds.length; idx++) {
+      GEM.updateEntropy(kinds[idx], blockhash(block.number - 1));
+    }
   }
 
-  /// @dev Called to stop mining for the given offset.
+  /// @dev Called to stop mining for the given kinds.
   function stop(uint kind) external onlyOwner whenNotPaused {
-    GEM.updateEntropy(kind, bytes32(0));
+    for (uint idx = 0; idx < kinds.length; idx++) {
+      GEM.updateEntropy(kinds[idx], bytes32(0));
+    }
   }
 
   /// @dev Called by gem manager to craft gems. Can't craft more than 10% of supply.
