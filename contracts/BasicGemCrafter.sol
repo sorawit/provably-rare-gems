@@ -10,7 +10,7 @@ contract BasicGemCrafter is Ownable {
   ProvablyRareGemV3 public immutable GEM;
   mapping(uint => uint) public crafted;
 
-  constructor(ProvablyRareGemV2 _gem) {
+  constructor(ProvablyRareGemV3 _gem) {
     GEM = _gem;
     _gem.create('Turquoise', '#30D5C8', 7**2, 64, 10000, address(this), msg.sender);
     _gem.create('Pearl', '#EAE0C8', 7**3, 32, 10001, address(this), msg.sender);
