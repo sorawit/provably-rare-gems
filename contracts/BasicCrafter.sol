@@ -9,14 +9,12 @@ import './ProvablyRareGemV2.sol';
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract BasicGemCrafter is Ownable, Pausable {
   ProvablyRareGemV2 public immutable GEM;
-  uint public immutable FIRST_KIND;
 
   mapping(uint => uint) public crafted;
   uint public craftCap;
 
   constructor(ProvablyRareGemV2 _gem, uint _craftCap) {
     GEM = _gem;
-    FIRST_KIND = _gem.gemCount();
     _gem.create('Amethyst', '#9966CC', 8**2, 64, 10000, address(this), msg.sender);
     _gem.create('Topaz', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
     _gem.create('Opal', '#A8C3BC', 8**4, 16, 10005, address(this), msg.sender);
@@ -30,6 +28,17 @@ contract BasicGemCrafter is Ownable, Pausable {
     craftCap = _craftCap;
   }
 
+  /// @dev Creaes more GEM
+  function create(
+    string calldata name,
+    string calldata color,
+    uint difficulty,
+    uint gemsPerMine,
+    uint multiplier
+  ) external onlyOwner {
+    GEM.create(name, color, difficulty, gemsPerMine, multiplier, address(this), msg.sender);
+  }
+
   /// @dev Pause crafter. Can only be called by owner.
   function pause() external onlyOwner {
     _pause();
@@ -41,13 +50,13 @@ contract BasicGemCrafter is Ownable, Pausable {
   }
 
   /// @dev Called once to start mining for the given offset.
-  function start(uint offset) external onlyOwner whenNotPaused {
-    GEM.updateEntropy(FIRST_KIND + offset, blockhash(block.number - 1));
+  function start(uint kind) external onlyOwner whenNotPaused {
+    GEM.updateEntropy(kind, blockhash(block.number - 1));
   }
 
   /// @dev Called to stop mining for the given offset.
-  function stop(uint offset) external onlyOwner whenNotPaused {
-    GEM.updateEntropy(FIRST_KIND + offset, bytes32(0));
+  function stop(uint kind) external onlyOwner whenNotPaused {
+    GEM.updateEntropy(kind, bytes32(0));
   }
 
   /// @dev Called by gem manager to craft gems. Can't craft more than 10% of supply.

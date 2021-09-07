@@ -10,7 +10,7 @@ import './Strings.sol';
 
 /// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
-contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
+contract ProvablyRareGemV3 is Initializable, ERC1155Supply {
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
