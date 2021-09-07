@@ -21,7 +21,7 @@ contract LOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
   event Claim(uint indexed id, address indexed claimer);
 
   mapping(uint => uint) public crafted;
-  mapping(uint => bool) public claimed;
+  mapping(uint => bool) public newClaimed;
 
   constructor(
     IERC721 _nft,
@@ -90,10 +90,15 @@ contract LOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
     }
   }
 
+  /// @dev Returns whether the given NFT ID has already claimed GEMs.
+  function claimed(uint id) public view returns (bool) {
+    return old.claimed(id) || newClaimed[id];
+  }
+
   function _claim(uint id) internal {
     require(msg.sender == NFT.ownerOf(id), 'not nft owner');
-    require(!claimed[id] && !old.claimed(id), 'already claimed');
-    claimed[id] = true;
+    require(claimed(id), 'already claimed');
+    newClaimed[id] = true;
     uint[4] memory kinds = airdrop(id);
     for (uint idx = 0; idx < 4; idx++) {
       GEM.craft(kinds[idx], 0, msg.sender);
