@@ -21,7 +21,7 @@ contract BasicGemCrafter is Ownable {
     _gem.create('Spinel', '#034B03', 8**7, 2, 10100, address(this), msg.sender);
     _gem.create('White Opal', '#7FFFD4', 8**8, 1, 10300, address(this), msg.sender);
     _gem.create('Violet Garnet', '#872282', 8**9, 1, 11000, address(this), msg.sender);
-    _gem.create("Pheonix's Feather", '#F26722', 8**10, 1, 20000, address(this), msg.sender);
+    _gem.create('Pheonix Feather', '#F26722', 8**10, 1, 20000, address(this), msg.sender);
     _gem.create('Yggdrasil Seed', '#21B54B', 8**11, 1, 50000, address(this), msg.sender);
     _gem.create('Ocean Heart', '#1E88B4', 8**11, 1, 50000, address(this), msg.sender);
     _gem.create("Philosopher's Stone", '#660000', 8**11, 1, 50000, address(this), msg.sender);
