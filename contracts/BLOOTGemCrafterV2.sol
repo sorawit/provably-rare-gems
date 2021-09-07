@@ -6,14 +6,14 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/utils/ERC1155Receiver.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/Pausable.sol';
-import './ProvablyRareGem.sol';
+import './ProvablyRareGemV2.sol';
 import './BLOOTGemCrafter.sol';
 
 /// @title BLOOT GEM Crafter
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausable {
   IERC721 public immutable NFT;
-  ProvablyRareGem public immutable GEM;
+  ProvablyRareGemV2 public immutable GEM;
   uint public immutable FIRST_KIND;
   bytes32 public immutable hashseed;
   BLOOTGemCrafter public immutable old;
@@ -27,7 +27,7 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausabl
   // prettier-ignore
   constructor(
     IERC721 _nft,
-    ProvablyRareGem _gem,
+    ProvablyRareGemV2 _gem,
     BLOOTGemCrafter _old
   ) {
     NFT = _nft;
@@ -35,26 +35,27 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausabl
     old = _old;
     hashseed = _old.hashseed();
     FIRST_KIND = _gem.gemCount();
-    uint diff;
-    (, , , diff, , , , , ) = _gem.gems(10);
+    ProvablyRareGem oldGem = _old.GEM();
+    uint diff; 
+    (, , , diff, , , , , ) = oldGem.gems(10);
     _gem.create('Violet Useless Rock of ALPHA', '#9966CC', diff, 64, 10000, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(11);
+    (, , , diff, , , , , ) = oldGem.gems(11);
     _gem.create('Goldy Pebble of LOOKS RARE', '#FFC87C', diff, 32, 10001, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(12);
+    (, , , diff, , , , , ) = oldGem.gems(12);
     _gem.create('Translucent River Rock of HODL', '#A8C3BC',diff, 16, 10005, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(13);
+    (, , , diff, , , , , ) = oldGem.gems(13);
     _gem.create('Blue Ice Scrap of UP ONLY', '#0F52BA',diff, 8, 10010, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(14);
+    (, , , diff, , , , , ) = oldGem.gems(14);
     _gem.create('Blushing Rock of PROBABLY NOTHING', '#E0115F', diff, 4, 10030, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(15);
+    (, , , diff, , , , , ) = oldGem.gems(15);
     _gem.create('Mossy Riverside Pebble of LFG', '#50C878', diff, 2, 10100, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(16);
+    (, , , diff, , , , , ) = oldGem.gems(16);
     _gem.create('The Lovely Rock of GOAT', '#FC74E4', diff, 1, 10300, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(17);
+    (, , , diff, , , , , ) = oldGem.gems(17);
     _gem.create('#00FF00 of OG', '#00FF00', diff, 1, 11000, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(18);
+    (, , , diff, , , , , ) = oldGem.gems(18);
     _gem.create('#0000FF of WAGMI', '#0000FF', diff, 1, 20000, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(19);
+    (, , , diff, , , , , ) = oldGem.gems(19);
     _gem.create('#FF0000 of THE MOON', '#FF0000', diff, 1, 50000, address(this), msg.sender);
   }
 

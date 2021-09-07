@@ -6,14 +6,14 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/utils/ERC1155Receiver.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/Pausable.sol';
-import './ProvablyRareGem.sol';
+import './ProvablyRareGemV2.sol';
 import './LOOTGemCrafter.sol';
 
 /// @title LOOT GEM Crafter
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract LOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausable {
   IERC721 public immutable NFT;
-  ProvablyRareGem public immutable GEM;
+  ProvablyRareGemV2 public immutable GEM;
   uint public immutable FIRST_KIND;
   bytes32 public immutable hashseed;
   LOOTGemCrafter public immutable old;
@@ -26,7 +26,7 @@ contract LOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausable
 
   constructor(
     IERC721 _nft,
-    ProvablyRareGem _gem,
+    ProvablyRareGemV2 _gem,
     LOOTGemCrafter _old
   ) {
     NFT = _nft;
@@ -34,26 +34,27 @@ contract LOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausable
     old = _old;
     hashseed = _old.hashseed();
     FIRST_KIND = _gem.gemCount();
+    ProvablyRareGem oldGem = _old.GEM();
     uint diff;
-    (, , , diff, , , , , ) = _gem.gems(0);
+    (, , , diff, , , , , ) = oldGem.gems(0);
     _gem.create('Amethyst', '#9966CC', diff, 64, 10000, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(1);
+    (, , , diff, , , , , ) = oldGem.gems(1);
     _gem.create('Topaz', '#FFC87C', diff, 32, 10001, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(2);
+    (, , , diff, , , , , ) = oldGem.gems(2);
     _gem.create('Opal', '#A8C3BC', diff, 16, 10005, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(3);
+    (, , , diff, , , , , ) = oldGem.gems(3);
     _gem.create('Sapphire', '#0F52BA', diff, 8, 10010, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(4);
+    (, , , diff, , , , , ) = oldGem.gems(4);
     _gem.create('Ruby', '#E0115F', diff, 4, 10030, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(5);
+    (, , , diff, , , , , ) = oldGem.gems(5);
     _gem.create('Emerald', '#50C878', diff, 2, 10100, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(6);
+    (, , , diff, , , , , ) = oldGem.gems(6);
     _gem.create('Pink Diamond', '#FC74E4', diff, 1, 10300, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(7);
+    (, , , diff, , , , , ) = oldGem.gems(7);
     _gem.create('The Dragon Jade', '#00A36C', diff, 1, 11000, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(8);
+    (, , , diff, , , , , ) = oldGem.gems(8);
     _gem.create('Azure Skystone', '#348CFC', diff, 1, 20000, address(this), msg.sender);
-    (, , , diff, , , , , ) = _gem.gems(9);
+    (, , , diff, , , , , ) = oldGem.gems(9);
     _gem.create('Scarlet Bloodstone', '#BC1C2C', diff, 1, 50000, address(this), msg.sender);
   }
 
