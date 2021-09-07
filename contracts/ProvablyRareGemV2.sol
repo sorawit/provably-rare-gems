@@ -12,6 +12,7 @@ import './Base64.sol';
 contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
   event Create(uint indexed kind);
   event Mine(address indexed miner, uint indexed kind);
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   string public name;
 
   struct Gem {
@@ -27,6 +28,7 @@ contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
   }
 
   uint private lock;
+  address public owner;
   mapping(uint => Gem) public gems;
   mapping(address => uint) public nonce;
   uint public gemCount;
@@ -40,10 +42,24 @@ contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
     lock = 1;
   }
 
+  modifier onlyOwner() {
+    require(owner == msg.sender, '!owner');
+    _;
+  }
+
   /// @dev Initializes the contract.
   function initialize() external initializer {
     name = 'Provably Rare Gem';
     lock = 1;
+    owner = msg.sender;
+    emit OwnershipTransferred(address(0), msg.sender);
+  }
+
+  /// @dev Transfers owner.
+  /// @param _owner The new owner.
+  function transferOwnership(address _owner) external onlyOwner {
+    owner = _owner;
+    emit OwnershipTransferred(msg.sender, _owner);
   }
 
   /// @dev Creates a new gem type. The manager can craft a portion of gems + can premine
