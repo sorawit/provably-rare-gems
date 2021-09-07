@@ -6,6 +6,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
 
 import './Base64.sol';
+import './Strings.sol';
 
 /// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
@@ -226,20 +227,25 @@ contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
   // prettier-ignore
   function uri(uint kind) public view override returns (string memory) {
     require(kind < gemCount, 'gem kind not exist');
+    string memory gemName = string(abi.encodePacked(gems[kind].name, ' #', Strings.toString(kind)));
+    string memory color = gems[kind].color;
     string memory output = string(abi.encodePacked(
-        '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: ',
-        gems[kind].color,
-        '; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="white" /><text x="10" y="20" class="base">',
-        gems[kind].name,
-        '</text><text x="10" y="40" class="base">',
-        '</text></svg>'
+      '<svg id="Layer_1" x="0px" y="0px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="350" height="400"><rect x="0" y="0" width="1080" height="1080" fill="#1a1a1a"/><g transform="translate(0 -25)"><g><polygon class="st0" fill="',
+      color,
+      '" points="679.25,58.27 400.75,58.27 203.82,255.2 203.82,824.8 400.75,1021.73 679.25,1021.73 876.18,824.8  876.18,255.2"></polygon><g class="st1" opacity="0.3"><path d="M679.25,58.27h-278.5L203.82,255.2v569.6l196.93,196.93h278.5L876.18,824.8V255.2L679.25,58.27z M739.56,709.06 l-116.9,116.9H457.34l-116.9-116.9V370.94l116.9-116.9h165.32l116.9,116.9V709.06z"></path></g><g><g><polygon class="st2" fill="none" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" points="679.25,58.27 400.75,58.27 203.82,255.2 203.82,824.8 400.75,1021.73 679.25,1021.73 876.18,824.8  876.18,255.2"></polygon><polygon fill="',
+      color,
+      '" class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" points="622.66,254.04 457.34,254.04 340.44,370.94 340.44,709.06 457.34,825.96 622.66,825.96  739.56,709.06 739.56,370.94"></polygon><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="400.75" y1="58.27" x2="457.34" y2="254.04"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="679.25" y1="58.27" x2="622.66" y2="254.04"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="203.82" y1="255.2" x2="340.44" y2="370.94"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="739.56" y1="370.94" x2="876.18" y2="255.2"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="739.56" y1="709.06" x2="876.18" y2="824.8"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="622.66" y1="825.96" x2="679.25" y2="1021.73"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="457.34" y1="825.96" x2="400.75" y2="1021.73"></line><line class="st2" stroke-width="10" stroke-miterlimit="10" stroke="#ffffff" x1="340.44" y1="709.06" x2="203.82" y2="824.8"></line></g></g></g></g><text x="50%" y="98%" dominant-baseline="middle" text-anchor="middle" font-size="2.5em" fill="',
+      color,
+      '">',
+      gemName,
+      '</text></svg>'
     ));
     string memory json = Base64.encode(bytes(string(abi.encodePacked(
       '{ "name": "',
-      gems[kind].name,
+      gemName,
       '", ',
       '"description" : ',
-      '"Provably Rare Gems", ',
+      '"Provably Rare Gem is a permissionless on-chain asset for hardcore collectors to mine and collect. Gems must be mined with off-chain Proof-of-Work. The higher the gem rarity, the more difficult it is to be found. Stats and other functionalities are intentionally omitted for others to interpret.", ',
       '"image": "data:image/svg+xml;base64,',
       Base64.encode(bytes(output)),
       '"}'
