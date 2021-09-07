@@ -2,12 +2,12 @@
 pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/access/Ownable.sol';
-import './ProvablyRareGemV2.sol';
+import './ProvablyRareGemV3.sol';
 
 /// @title Basic GEM Crafter
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract BasicGemCrafter is Ownable {
-  ProvablyRareGemV2 public immutable GEM;
+  ProvablyRareGemV3 public immutable GEM;
   mapping(uint => uint) public crafted;
 
   constructor(ProvablyRareGemV2 _gem) {
