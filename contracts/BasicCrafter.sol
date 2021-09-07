@@ -11,9 +11,8 @@ contract BasicGemCrafter is Ownable, Pausable {
   ProvablyRareGemV2 public immutable GEM;
 
   mapping(uint => uint) public crafted;
-  uint public craftCap;
 
-  constructor(ProvablyRareGemV2 _gem, uint _craftCap) {
+  constructor(ProvablyRareGemV2 _gem) {
     GEM = _gem;
     _gem.create('Amethyst', '#9966CC', 8**2, 64, 10000, address(this), msg.sender);
     _gem.create('Topaz', '#FFC87C', 8**3, 32, 10001, address(this), msg.sender);
@@ -25,7 +24,6 @@ contract BasicGemCrafter is Ownable, Pausable {
     _gem.create('The Dragon Jade', '#00A36C', 8**9, 1, 11000, address(this), msg.sender);
     _gem.create('Azure Skystone', '#348CFC', 8**10, 1, 20000, address(this), msg.sender);
     _gem.create('Scarlet Bloodstone', '#BC1C2C', 8**11, 1, 50000, address(this), msg.sender);
-    craftCap = _craftCap;
   }
 
   /// @dev Creaes more GEM
