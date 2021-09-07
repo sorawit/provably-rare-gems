@@ -50,10 +50,11 @@ contract ProvablyRareGemV3 is Initializable, ERC1155Supply {
   }
 
   /// @dev Initializes the contract.
-  function initialize() external initializer {
+  function initialize(uint _maxGemCount) external initializer {
     name = 'Provably Rare Gem';
     lock = 1;
     owner = msg.sender;
+    maxGemCount = _maxGemCount;
     emit OwnershipTransferred(address(0), msg.sender);
   }
 
@@ -66,7 +67,7 @@ contract ProvablyRareGemV3 is Initializable, ERC1155Supply {
 
   /// @dev Updates max gem count in the system.
   function setMaxGemCount(uint _maxGemCount) external onlyOwner {
-    require(_maxGemCount == 0 || _maxGemCount >= gemCount, 'bad value');
+    require(_maxGemCount >= gemCount, 'bad value');
     maxGemCount = _maxGemCount;
   }
 
@@ -80,7 +81,7 @@ contract ProvablyRareGemV3 is Initializable, ERC1155Supply {
     address crafter,
     address manager
   ) external returns (uint) {
-    require(maxGemCount == 0 || gemCount < maxGemCount, 'reach max gem');
+    require(gemCount < maxGemCount, 'reach max gem');
     require(difficulty > 0 && difficulty <= 2**128, 'bad difficulty');
     require(gemsPerMine > 0 && gemsPerMine <= 1e6, 'bad gems per mine');
     require(multiplier >= 1e4 && multiplier <= 1e10, 'bad multiplier');
