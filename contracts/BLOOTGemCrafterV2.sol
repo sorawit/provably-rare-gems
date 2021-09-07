@@ -5,12 +5,13 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/access/Ownable.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/utils/ERC1155Receiver.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyGuard.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/Pausable.sol';
 import './ProvablyRareGem.sol';
 import './BLOOTGemCrafter.sol';
 
 /// @title BLOOT GEM Crafter
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
-contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
+contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausable {
   IERC721 public immutable NFT;
   ProvablyRareGem public immutable GEM;
   uint public immutable FIRST_KIND;
@@ -46,15 +47,25 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
     _gem.create('#FF0000 of THE MOON', '#FF0000', 8**11, 1, 50000, address(this), msg.sender);
   }
 
+  /// @dev Pause crafter. Can only be called by owner.
+  function pause() external onlyOwner {
+    _pause();
+  }
+
+  /// @dev Unpause crafter. Can only be called by owner.
+  function unpause() external onlyOwner {
+    _unpause();
+  }
+
   /// @dev Called once to start the claim and generate hash seed.
-  function start() external onlyOwner {
+  function start() external onlyOwner whenNotPaused {
     for (uint offset = 0; offset < 10; offset++) {
       GEM.updateEntropy(FIRST_KIND + offset, hashseed);
     }
   }
 
   /// @dev Called by gem manager to craft gems. Can't craft more than 10% of supply.
-  function craft(uint kind, uint amount) external nonReentrant onlyOwner {
+  function craft(uint kind, uint amount) external nonReentrant onlyOwner whenNotPaused {
     require(amount != 0, 'zero amount craft');
     crafted[kind] += amount;
     GEM.craft(kind, amount, msg.sender);
@@ -80,12 +91,12 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
   }
 
   /// @dev Called by NFT owners to get a welcome pack of gems. Each NFT ID can claim once.
-  function claim(uint id) external nonReentrant {
+  function claim(uint id) external nonReentrant whenNotPaused {
     _claim(id);
   }
 
   /// @dev Called by NFT owners to get a welcome pack of gems for multiple NFTs.
-  function multiClaim(uint[] calldata ids) external nonReentrant {
+  function multiClaim(uint[] calldata ids) external nonReentrant whenNotPaused {
     for (uint idx = 0; idx < ids.length; idx++) {
       _claim(ids[idx]);
     }
@@ -123,7 +134,7 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard {
     uint[] calldata ids,
     uint[] calldata values,
     bytes calldata data
-  ) external override nonReentrant returns (bytes4) {
+  ) external override nonReentrant whenNotPaused returns (bytes4) {
     require(msg.sender == address(old.GEM()), 'bad token');
     for (uint idx = 0; idx < ids.length; idx++) {
       uint kind = ids[idx];
