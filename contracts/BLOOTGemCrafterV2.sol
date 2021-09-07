@@ -121,7 +121,7 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausabl
 
   function _claim(uint id) internal {
     require(msg.sender == NFT.ownerOf(id), 'not nft owner');
-    require(claimed(id), 'already claimed');
+    require(!claimed(id), 'already claimed');
     newClaimed[id] = true;
     uint[4] memory kinds = airdrop(id);
     for (uint idx = 0; idx < 4; idx++) {
