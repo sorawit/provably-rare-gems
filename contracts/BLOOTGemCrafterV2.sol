@@ -42,9 +42,9 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausabl
     (, , , diff, , , , , ) = oldGem.gems(11);
     _gem.create('Goldy Pebble of LOOKS RARE', '#FFC87C', diff, 32, 10001, address(this), msg.sender);
     (, , , diff, , , , , ) = oldGem.gems(12);
-    _gem.create('Translucent River Rock of HODL', '#A8C3BC',diff, 16, 10005, address(this), msg.sender);
+    _gem.create('Translucent River Rock of HODL', '#A8C3BC', diff, 16, 10005, address(this), msg.sender);
     (, , , diff, , , , , ) = oldGem.gems(13);
-    _gem.create('Blue Ice Scrap of UP ONLY', '#0F52BA',diff, 8, 10010, address(this), msg.sender);
+    _gem.create('Blue Ice Scrap of UP ONLY', '#0F52BA', diff, 8, 10010, address(this), msg.sender);
     (, , , diff, , , , , ) = oldGem.gems(14);
     _gem.create('Blushing Rock of PROBABLY NOTHING', '#E0115F', diff, 4, 10030, address(this), msg.sender);
     (, , , diff, , , , , ) = oldGem.gems(15);
