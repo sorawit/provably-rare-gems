@@ -36,7 +36,7 @@ contract BLOOTGemCrafterV2 is Ownable, ERC1155Receiver, ReentrancyGuard, Pausabl
     hashseed = _old.hashseed();
     FIRST_KIND = _gem.gemCount();
     ProvablyRareGem oldGem = _old.GEM();
-    uint diff; 
+    uint diff;
     (, , , diff, , , , , ) = oldGem.gems(10);
     _gem.create('Violet Useless Rock of ALPHA', '#9966CC', diff, 64, 10000, address(this), msg.sender);
     (, , , diff, , , , , ) = oldGem.gems(11);
