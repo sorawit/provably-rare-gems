@@ -6,10 +6,10 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC11
 import './ProvablyRareGemV2.sol';
 import '../interfaces/ILoot.sol';
 
-/// @title Provably Rare Gem Enchanted LOOT
+/// @title Provably Rare Gem Enchanted Loot
 /// @author AlphaFinanceLab
 contract ProvablyRareGemEnchantedLOOT is
-  ERC721('Provably Rare Gem Enchanted LOOT', 'ELOOT'),
+  ERC721('Provably Rare Gem Enchanted Loot', 'ELOOT'),
   IERC1155Receiver,
   IERC721Receiver
 {
@@ -225,7 +225,7 @@ contract ProvablyRareGemEnchantedLOOT is
       bytes(
         string(
           abi.encodePacked(
-            '{"name": "Bag #',
+            '{"name": "Enchanted Bag #',
             toString(_tokenId),
             '", "description": "Enchanted Loot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Loot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Loot in any way you want.", "image": "data:image/svg+xml;base64,',
             Base64.encode(bytes(output)),
