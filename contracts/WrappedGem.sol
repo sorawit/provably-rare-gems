@@ -26,6 +26,7 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
     string calldata __name,
     string calldata __symbol
   ) external initializer {
+    lock = 1;
     gem = _gem;
     kind = _kind;
     _name = __name;
