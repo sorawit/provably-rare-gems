@@ -133,6 +133,7 @@ contract ProvablyRareGemEnchantedLOOT is
   function tokenURI(uint _tokenId) public view override returns (string memory) {
     require(_tokenId < enchantCount, 'enchanted LOOT not exist');
     EnchantInfo memory info = enchantInfos[_tokenId];
+    require(info.gemIds.length != 0, 'token id no longer exist');
     uint nftId = info.nftId;
 
     string[8] memory enchantings;
