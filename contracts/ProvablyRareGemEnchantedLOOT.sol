@@ -27,7 +27,7 @@ contract ProvablyRareGemEnchantedLOOT is
   uint private lock;
   IERC721 public immutable NFT;
   ProvablyRareGemV2 public immutable GEM;
-  uint public constant FIRST_KIND = 10;
+  uint public constant FIRST_KIND = 0;
   uint public enchantCount;
   string[10] private gemShortNames = [
     '[Amethyst] ',
