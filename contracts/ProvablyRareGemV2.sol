@@ -8,8 +8,6 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/Strings.sol';
 
 import './Base64.sol';
 
-// import './Strings.sol';
-
 /// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract ProvablyRareGemV2 is Initializable, ERC1155Supply {
