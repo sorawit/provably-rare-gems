@@ -6,6 +6,8 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC11
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC20/ERC20.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
 
+/// @title Wrapped Gem
+/// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
 contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
   address public gem;
   uint public kind;
@@ -20,6 +22,7 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
     lock = 1;
   }
 
+  /// @dev Initializes the contract. Can only be called once at deployment.
   function initialize(
     address _gem,
     uint _kind,
@@ -33,19 +36,23 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
     _symbol = __symbol;
   }
 
+  /// @dev Returns the token name. Override to work with upgradable pattern.
   function name() public view override returns (string memory) {
     return _name;
   }
 
+  /// @dev Returns the token symbol. Override to work with upgradable pattern.
   function symbol() public view override returns (string memory) {
     return _symbol;
   }
 
+  /// @dev Burns wrapped GEMs to obtain back the original GEMs.
   function redeem(uint value) external nonReentrant {
     _burn(msg.sender, value * 10**18);
     IERC1155(gem).safeTransferFrom(address(this), msg.sender, kind, value, '');
   }
 
+  /// @dev On receiving the GEMs, this contract mints wrapped GEMs for the sender.
   function onERC1155Received(
     address operator,
     address from,
