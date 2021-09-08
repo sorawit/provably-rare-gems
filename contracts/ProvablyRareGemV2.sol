@@ -4,9 +4,11 @@ pragma solidity 0.8.3;
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/extensions/ERC1155Supply.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/Strings.sol';
 
 import './Base64.sol';
-import './Strings.sol';
+
+// import './Strings.sol';
 
 /// @title Provably Rare Gems
 /// @author Sorawit Suriyakarn (swit.eth / https://twitter.com/nomorebear)
