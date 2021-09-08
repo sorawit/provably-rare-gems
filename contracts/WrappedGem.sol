@@ -65,6 +65,7 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
     require(id == kind, 'bad kind');
     require(value > 0, 'bad value');
     require(data.length == 0, 'bad data');
+    require(from == operator, 'from not operator');
     _mint(from, value * 10**18);
     return this.onERC1155Received.selector;
   }
