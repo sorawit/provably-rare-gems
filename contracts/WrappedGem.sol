@@ -48,6 +48,7 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
 
   /// @dev Burns wrapped GEMs to obtain back the original GEMs.
   function redeem(uint value) external nonReentrant {
+    require(value > 0, 'bad value');
     _burn(msg.sender, value * 10**18);
     IERC1155(gem).safeTransferFrom(address(this), msg.sender, kind, value, '');
   }
@@ -62,6 +63,8 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
   ) external override returns (bytes4) {
     require(msg.sender == gem, 'not gem token');
     require(id == kind, 'bad kind');
+    require(value > 0, 'bad value');
+    require(data.length == 0, 'bad data');
     _mint(from, value * 10**18);
     return this.onERC1155Received.selector;
   }
