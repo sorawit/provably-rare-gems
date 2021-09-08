@@ -43,8 +43,20 @@ contract ProvablyRareGemEnchantedLOOT is
     '[Scarlet] '
   ];
   string[10] private colorCodes;
+  bool private isEnchanting;
 
   mapping(uint => EnchantInfo) enchantInfos;
+
+  modifier isEnchant() {
+    isEnchanting = true;
+    _;
+    isEnchanting = false;
+  }
+
+  modifier inEnchant() {
+    require(isEnchanting, '!enchanting');
+    _;
+  }
 
   modifier onlyEOA() {
     require(tx.origin == msg.sender, '!eoa');
@@ -91,7 +103,7 @@ contract ProvablyRareGemEnchantedLOOT is
     uint _nftId,
     uint[] calldata _gemIds,
     uint[] calldata _indices
-  ) external nonReentrant onlyEOA {
+  ) external nonReentrant onlyEOA isEnchant {
     require(_gemIds.length == _indices.length, '!length');
     require(_gemIds.length > 0, 'no gems');
     NFT.safeTransferFrom(msg.sender, address(this), _nftId);
@@ -261,7 +273,7 @@ contract ProvablyRareGemEnchantedLOOT is
     address from,
     uint tokenId,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external override inEnchant returns (bytes4) {
     require(msg.sender == address(NFT), 'bad token');
     return this.onERC721Received.selector;
   }
@@ -282,7 +294,7 @@ contract ProvablyRareGemEnchantedLOOT is
     uint[] calldata ids,
     uint[] calldata values,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external override inEnchant returns (bytes4) {
     require(msg.sender == address(GEM), 'bad token');
     return this.onERC1155BatchReceived.selector;
   }
