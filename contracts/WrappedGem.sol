@@ -60,7 +60,7 @@ contract WrappedGem is Initializable, ERC20('', ''), ERC1155Receiver {
     uint id,
     uint value,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external override nonReentrant returns (bytes4) {
     require(msg.sender == gem, 'not gem token');
     require(id == kind, 'bad kind');
     require(value > 0, 'bad value');
