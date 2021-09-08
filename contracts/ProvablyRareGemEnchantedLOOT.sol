@@ -8,11 +8,10 @@ import './LOOTGemCrafterV2.sol';
 /// @author AlphaFinanceLab
 contract ProvablyRareGemEnchantedLOOT is ERC721('Provably Rare Gem Enchanted LOOT', 'ELOOT') {
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-  event Enchant(address indexed nftId, uint[] gemIds, uint[] indices, address indexed owner);
-  event Disencahnt(address indexed tokenId, address indexed owner);
+  event Enchant(uint indexed nftId, uint[] gemIds, uint[] indices, address indexed owner);
+  event Disenchant(uint indexed tokenId, address indexed owner);
 
   struct EnchantInfo {
-    address enchanter;
     uint nftId;
     uint[] gemIds;
     uint[] indices;
@@ -64,17 +63,11 @@ contract ProvablyRareGemEnchantedLOOT is ERC721('Provably Rare Gem Enchanted LOO
     emit OwnershipTransferred(address(0), msg.sender);
   }
 
-  function _enchant(
-    uint _nftId,
-    uint[] calldata _gemIds,
-    uint[] calldata _indices
-  ) internal {}
-
   function enchant(
     uint _nftId,
     uint[] calldata _gemIds,
     uint[] calldata _indices
-  ) external onlyEOA {
+  ) external nonReentrant onlyEOA {
     require(_gemIds.length == _indices.length, '!length');
     require(_gemIds.length > 0, 'no gems');
     NFT.safeTransferFrom(msg.sender, address(this), _nftId);
@@ -87,26 +80,25 @@ contract ProvablyRareGemEnchantedLOOT is ERC721('Provably Rare Gem Enchanted LOO
     }
     GEM.safeBatchTransferFrom(msg.sender, address(this), _gemIds, amounts, '');
 
-    enchantInfos[enchantCount] = EnchantInfo({
-      enchanter: msg.sender,
-      nftId: _nftId,
-      gemIds: _gemIds,
-      indices: _indices
-    });
+    enchantInfos[enchantCount] = EnchantInfo({nftId: _nftId, gemIds: _gemIds, indices: _indices});
 
     _mint(msg.sender, enchantCount++);
+    emit Enchant(_nftId, _gemIds, _indices, msg.sender);
   }
 
-  function disenchant(uint _tokenId) external onlyEOA {
-    EnchantInfo memory info = enchantInfos[_tokenId];
+  function disenchant(uint _tokenId) external nonReentrant onlyEOA {
     require(ownerOf(_tokenId) == msg.sender, '!ownerOf');
     _burn(_tokenId);
+
+    EnchantInfo memory info = enchantInfos[_tokenId];
     NFT.safeTransferFrom(address(this), msg.sender, info.nftId);
     uint[] memory ids = info.gemIds;
     uint[] memory amounts = new uint[](ids.length);
     for (uint i = 0; i < amounts.length; i++) amounts[i] = 1;
     GEM.safeBatchTransferFrom(address(this), msg.sender, ids, amounts, '');
+
     delete enchantInfos[_tokenId];
+    emit Disenchant(_tokenId, msg.sender);
   }
 
   function tokenURI(uint _tokenId) public view override returns (string memory) {
