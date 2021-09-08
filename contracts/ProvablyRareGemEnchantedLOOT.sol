@@ -3,7 +3,7 @@ pragma solidity 0.8.3;
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/ERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC1155.sol';
-import './LOOTGemCrafterV2.sol';
+import './ProvablyRareGemV2.sol';
 import '../interfaces/ILoot.sol';
 
 /// @title Provably Rare Gem Enchanted LOOT
@@ -27,8 +27,7 @@ contract ProvablyRareGemEnchantedLOOT is
   uint private lock;
   IERC721 public immutable NFT;
   ProvablyRareGemV2 public immutable GEM;
-  LOOTGemCrafterV2 public immutable CRAFTER;
-  uint public immutable FIRST_KIND;
+  uint public constant FIRST_KIND = 10;
   uint public enchantCount;
   string[10] private gemShortNames = [
     '[Amethyst] ',
@@ -82,19 +81,13 @@ contract ProvablyRareGemEnchantedLOOT is
     emit OwnershipTransferred(msg.sender, _owner);
   }
 
-  constructor(LOOTGemCrafterV2 _crafter) {
+  constructor(IERC721 _nft, ProvablyRareGemV2 _gem) {
     lock = 1;
-
-    ProvablyRareGemV2 gem = _crafter.GEM(); // gas saving
-    uint firstKind = _crafter.FIRST_KIND();
-
-    CRAFTER = _crafter;
-    NFT = _crafter.NFT();
-    GEM = gem;
-    FIRST_KIND = firstKind;
+    NFT = _nft;
+    GEM = _gem;
     owner = msg.sender;
     for (uint i = 0; i < 10; i++) {
-      (, colorCodes[i], , , , , , , ) = gem.gems(firstKind + i);
+      (, colorCodes[i], , , , , , , ) = _gem.gems(FIRST_KIND + i);
     }
     emit OwnershipTransferred(address(0), msg.sender);
   }
