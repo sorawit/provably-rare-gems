@@ -221,7 +221,6 @@ contract ProvablyRareGemEnchantedLOOT is
       )
     );
 
-    // TODO: update description
     string memory json = Base64.encode(
       bytes(
         string(
