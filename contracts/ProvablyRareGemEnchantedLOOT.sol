@@ -234,7 +234,7 @@ contract ProvablyRareGemEnchantedLOOT is
           abi.encodePacked(
             '{"name": "Bag #',
             toString(_tokenId),
-            '", "description": "Enchanted Loot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Loot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Loot in any way you want.", "image": "data:image/svg+xml;base64,',
+            '", "description": "Enchanted Loot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Loot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Loot in any way you want.", "image": "data:image/svg+xml;base64,',
             Base64.encode(bytes(output)),
             '"}'
           )
