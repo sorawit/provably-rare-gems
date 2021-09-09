@@ -6,10 +6,10 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC11
 import './ProvablyRareGemV2.sol';
 import '../interfaces/ILoot.sol';
 
-/// @title Provably Rare Gem Enchanted Loot
+/// @title Provably Rare Gem Enchanted Bloot
 /// @author AlphaFinanceLab
-contract ProvablyRareGemEnchantedLOOT is
-  ERC721('Provably Rare Gem Enchanted Loot', 'LOOT+'),
+contract ProvablyRareGemEnchantedBLOOT is
+  ERC721('Provably Rare Gem Enchanted Bloot', 'BLOOT+'),
   IERC1155Receiver,
   IERC721Receiver
 {
@@ -27,19 +27,19 @@ contract ProvablyRareGemEnchantedLOOT is
   uint private lock;
   IERC721 public immutable NFT;
   ProvablyRareGemV2 public immutable GEM;
-  uint public constant FIRST_KIND = 0;
+  uint public constant FIRST_KIND = 10;
   uint public enchantCount;
   string[10] private gemShortNames = [
-    '[Amethyst] ',
-    '[Topaz] ',
-    '[Opal] ',
-    '[Sapphire] ',
-    '[Ruby] ',
-    '[Emerald] ',
-    '[Pink] ',
-    '[Jade] ',
-    '[Azure] ',
-    '[Scarlet] '
+    '[Violet] ',
+    '[Goldy] ',
+    '[Translucent] ',
+    '[Ice] ',
+    '[Blushing] ',
+    '[Mossy] ',
+    '[Lovely] ',
+    '[#00FF00] ',
+    '[#0000FF] ',
+    '[#FF0000] '
   ];
   string[10] private colorCodes;
   bool private isEnchanting;
@@ -131,7 +131,7 @@ contract ProvablyRareGemEnchantedLOOT is
   }
 
   function tokenURI(uint _tokenId) public view override returns (string memory) {
-    require(_tokenId < enchantCount, 'enchanted LOOT not exist');
+    require(_tokenId < enchantCount, 'enchanted BLOOT not exist');
     EnchantInfo memory info = enchantInfos[_tokenId];
     require(info.gemIds.length != 0, 'token id no longer exist');
     uint nftId = info.nftId;
@@ -227,7 +227,7 @@ contract ProvablyRareGemEnchantedLOOT is
           abi.encodePacked(
             '{"name": "Enchanted Bag #',
             toString(_tokenId),
-            '", "description": "Enchanted Loot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Loot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Loot in any way you want.", "image": "data:image/svg+xml;base64,',
+            '", "description": "Enchanted Bloot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Bloot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Bloot in any way you want.", "image": "data:image/svg+xml;base64,',
             Base64.encode(bytes(output)),
             '"}'
           )
