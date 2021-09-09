@@ -68,6 +68,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
     prices[summonerId] = price;
     listers[summonerId] = msg.sender;
     set.add(summonerId);
+    mySet[msg.sender].add(summonerId);
     emit List(summonerId, msg.sender, price);
   }
 
@@ -79,6 +80,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
     listers[summonerId] = address(0);
     rarity.safeTransferFrom(address(this), msg.sender, summonerId);
     set.remove(summonerId);
+    mySet[msg.sender].remove(summonerId);
     emit Unlist(summonerId, msg.sender);
   }
 
@@ -95,6 +97,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
     rarity.safeTransferFrom(address(this), msg.sender, summonerId);
     payable(lister).transfer(get);
     set.remove(summonerId);
+    mySet[lister].remove(summonerId);
     emit Buy(summonerId, lister, msg.sender, price, fee);
   }
 
