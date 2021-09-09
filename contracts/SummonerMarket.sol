@@ -33,6 +33,7 @@ contract SummonnerMarket is Initializable, ERC721Holder {
     _;
   }
 
+  /// @dev Initializes the contract. Can only be called once.
   function initialize(IERC721 _rarity, uint _feeBps) external initializer {
     lock = 1;
     owner = msg.sender;
@@ -41,16 +42,19 @@ contract SummonnerMarket is Initializable, ERC721Holder {
     emit OwnershipTransferred(address(0), msg.sender);
   }
 
+  /// @dev Transfers ownership to a new address.
   function transferOwnership(address _owner) external onlyOwner {
     owner = _owner;
     emit OwnershipTransferred(msg.sender, _owner);
   }
 
+  /// @dev Updates fee. Only callable by owner.
   function setFeeBps(uint _feeBps) external onlyOwner {
     feeBps = _feeBps;
     emit SetFeeBps(_feeBps);
   }
 
+  /// @dev Lists the given summoner. This contract will take custody until bought / unlisted.
   function list(uint summonerId, uint price) external nonReentrant {
     require(price > 0, 'bad price');
     require(prices[summonerId] == 0, 'already listed');
@@ -60,6 +64,7 @@ contract SummonnerMarket is Initializable, ERC721Holder {
     emit List(summonerId, msg.sender, price);
   }
 
+  /// @dev Unlists the given summoner. Must be the lister.
   function unlist(uint summonerId) external nonReentrant {
     require(prices[summonerId] > 0, 'not listed');
     require(listers[summonerId] == msg.sender, 'not lister');
@@ -69,6 +74,7 @@ contract SummonnerMarket is Initializable, ERC721Holder {
     emit Unlist(summonerId, msg.sender);
   }
 
+  /// @dev Buys the given summoner. Must pay the exact correct prirce.
   function buy(uint summonerId) external payable nonReentrant {
     uint price = prices[summonerId];
     require(price > 0, 'not listed');
@@ -83,6 +89,7 @@ contract SummonnerMarket is Initializable, ERC721Holder {
     emit Buy(summonerId, lister, msg.sender, price, fee);
   }
 
+  /// @dev Withdraw trading fees. Only called by owner.
   function withdraw(uint amount) external onlyOwner {
     payable(msg.sender).transfer(amount == 0 ? address(this).balance : amount);
   }
