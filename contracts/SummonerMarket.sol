@@ -4,10 +4,13 @@ pragma solidity 0.8.3;
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/utils/ERC721Holder.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/structs/EnumerableSet.sol';
 
 /// @dev Summoner market to allow trading of summoners
 /// @author swit.eth (@nomorebear) + nipun (@nipun_pit) + jade (@jade_arin)
 contract SummonerMarket is Initializable, ERC721Holder {
+  using EnumerableSet for EnumerableSet.UintSet;
+
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event List(uint indexed id, address indexed lister, uint price);
   event Unlist(uint indexed id, address indexed lister);
@@ -18,6 +21,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
   uint public feeBps;
   address public owner;
   uint private lock;
+  EnumerableSet.UintSet private set;
 
   mapping(uint => uint) public prices;
   mapping(uint => address) public listers;
@@ -62,6 +66,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
     rarity.safeTransferFrom(msg.sender, address(this), summonerId);
     prices[summonerId] = price;
     listers[summonerId] = msg.sender;
+    set.add(summonerId);
     emit List(summonerId, msg.sender, price);
   }
 
@@ -72,6 +77,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
     prices[summonerId] = 0;
     listers[summonerId] = address(0);
     rarity.safeTransferFrom(address(this), msg.sender, summonerId);
+    set.remove(summonerId);
     emit Unlist(summonerId, msg.sender);
   }
 
@@ -87,11 +93,31 @@ contract SummonerMarket is Initializable, ERC721Holder {
     listers[summonerId] = address(0);
     rarity.safeTransferFrom(address(this), msg.sender, summonerId);
     payable(lister).transfer(get);
+    set.remove(summonerId);
     emit Buy(summonerId, lister, msg.sender, price, fee);
   }
 
   /// @dev Withdraw trading fees. Only called by owner.
   function withdraw(uint amount) external onlyOwner {
     payable(msg.sender).transfer(amount == 0 ? address(this).balance : amount);
+  }
+
+  /// @dev Returns list the total number of listed summoners.
+  function listLength() external view returns (uint) {
+    return set.length();
+  }
+
+  /// @dev Returns the ids and the prices of the listed summoners.
+  function listsAt(uint start, uint count)
+    external
+    view
+    returns (uint[] memory rIds, uint[] memory rPrices)
+  {
+    rIds = new uint[](count);
+    rPrices = new uint[](count);
+    for (uint idx = 0; idx < count; idx++) {
+      rIds[idx] = set.at(start + idx);
+      rPrices[idx] = prices[rIds[idx]];
+    }
   }
 }
