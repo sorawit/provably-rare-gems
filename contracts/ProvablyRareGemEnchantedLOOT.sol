@@ -1,18 +1,14 @@
 pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
-import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/ERC721.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC1155.sol';
 import './ProvablyRareGemV2.sol';
 import '../interfaces/ILoot.sol';
 
 /// @title Provably Rare Gem Enchanted Loot
 /// @author AlphaFinanceLab
-contract ProvablyRareGemEnchantedLOOT is
-  ERC721('Provably Rare Gem Enchanted Loot', 'LOOT+'),
-  IERC1155Receiver,
-  IERC721Receiver
-{
+contract ProvablyRareGemEnchantedLOOT is ERC721Enumerable, IERC1155Receiver, IERC721Receiver {
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event Enchant(uint indexed nftId, uint[] gemIds, uint[] indices, address indexed owner);
   event Disenchant(uint indexed tokenId, address indexed owner);
@@ -29,22 +25,22 @@ contract ProvablyRareGemEnchantedLOOT is
   ProvablyRareGemV2 public immutable GEM;
   uint public constant FIRST_KIND = 0;
   uint public enchantCount;
-  string[10] private gemShortNames = [
-    '[Amethyst] ',
-    '[Topaz] ',
-    '[Opal] ',
-    '[Sapphire] ',
-    '[Ruby] ',
-    '[Emerald] ',
-    '[Pink] ',
-    '[Jade] ',
-    '[Azure] ',
-    '[Scarlet] '
+  string[10] public gemShortNames = [
+    'Amethyst',
+    'Topaz',
+    'Opal',
+    'Sapphire',
+    'Ruby',
+    'Emerald',
+    'Pink',
+    'Jade',
+    'Azure',
+    'Scarlet'
   ];
-  string[10] private colorCodes;
+  string[10] public colorCodes;
   bool private isEnchanting;
 
-  mapping(uint => EnchantInfo) enchantInfos;
+  mapping(uint => EnchantInfo) public enchantInfos;
 
   modifier isEnchant() {
     isEnchanting = true;
@@ -81,7 +77,9 @@ contract ProvablyRareGemEnchantedLOOT is
     emit OwnershipTransferred(msg.sender, _owner);
   }
 
-  constructor(IERC721 _nft, ProvablyRareGemV2 _gem) {
+  constructor(IERC721 _nft, ProvablyRareGemV2 _gem)
+    ERC721('Provably Rare Gem Enchanted Loot', 'LOOT+')
+  {
     lock = 1;
     NFT = _nft;
     GEM = _gem;
@@ -147,7 +145,7 @@ contract ProvablyRareGemEnchantedLOOT is
     for (uint i = 0; i < 8; i++) {
       if (bytes(enchantings[i]).length > 0) {
         colorParts[i] = string(
-          abi.encodePacked('<tspan fill="', colors[i], '">', enchantings[i], '</tspan>')
+          abi.encodePacked('<tspan fill="', colors[i], '">[', enchantings[i], '] </tspan>')
         );
       }
     }
