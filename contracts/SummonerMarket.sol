@@ -22,6 +22,7 @@ contract SummonerMarket is Initializable, ERC721Holder {
   address public owner;
   uint private lock;
   EnumerableSet.UintSet private set;
+  mapping(address => EnumerableSet.UintSet) private mySet;
 
   mapping(uint => uint) public prices;
   mapping(uint => address) public listers;
@@ -117,6 +118,25 @@ contract SummonerMarket is Initializable, ERC721Holder {
     rPrices = new uint[](count);
     for (uint idx = 0; idx < count; idx++) {
       rIds[idx] = set.at(start + idx);
+      rPrices[idx] = prices[rIds[idx]];
+    }
+  }
+
+  /// @dev Returns list the total number of listed summoners of the given user.
+  function myListLength(address user) external view returns (uint) {
+    return mySet[user].length();
+  }
+
+  /// @dev Returns the ids and the prices of the listed summoners of the given user.
+  function myListsAt(
+    address user,
+    uint start,
+    uint count
+  ) external view returns (uint[] memory rIds, uint[] memory rPrices) {
+    rIds = new uint[](count);
+    rPrices = new uint[](count);
+    for (uint idx = 0; idx < count; idx++) {
+      rIds[idx] = mySet[user].at(start + idx);
       rPrices[idx] = prices[rIds[idx]];
     }
   }
