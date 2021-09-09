@@ -9,12 +9,7 @@ import '../interfaces/ILoot.sol';
 
 /// @title Enchanted Bloot
 /// @author AlphaFinanceLab
-contract ProvablyRareGemEnchantedBLOOT is
-  Initializable,
-  ERC721Enumerable,
-  IERC1155Receiver,
-  IERC721Receiver
-{
+contract EnchantedBLOOT is Initializable, ERC721Enumerable, IERC1155Receiver, IERC721Receiver {
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event Enchant(uint indexed nftId, uint[] gemIds, uint[] indices, address indexed owner);
   event Disenchant(uint indexed tokenId, address indexed owner);
