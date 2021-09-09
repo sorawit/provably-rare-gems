@@ -40,6 +40,7 @@ contract SummonnerMarket is Initializable, ERC721Holder {
     rarity = _rarity;
     feeBps = _feeBps;
     emit OwnershipTransferred(address(0), msg.sender);
+    emit SetFeeBps(_feeBps);
   }
 
   /// @dev Transfers ownership to a new address.
