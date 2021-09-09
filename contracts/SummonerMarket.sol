@@ -7,7 +7,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initiali
 
 /// @dev Summoner market to allow trading of summoners
 /// @author swit.eth (@nomorebear) + nipun (@nipun_pit) + jade (@jade_arin)
-contract SummonnerMarket is Initializable, ERC721Holder {
+contract SummonerMarket is Initializable, ERC721Holder {
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event List(uint indexed id, address indexed lister, uint price);
   event Unlist(uint indexed id, address indexed lister);
