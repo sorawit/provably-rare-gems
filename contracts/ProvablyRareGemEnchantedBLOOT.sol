@@ -3,12 +3,18 @@ pragma solidity 0.8.3;
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC1155.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
 import './ProvablyRareGemV2.sol';
 import '../interfaces/ILoot.sol';
 
-/// @title Provably Rare Gem Enchanted Bloot
+/// @title Enchanted Bloot
 /// @author AlphaFinanceLab
-contract ProvablyRareGemEnchantedBLOOT is ERC721Enumerable, IERC1155Receiver, IERC721Receiver {
+contract ProvablyRareGemEnchantedBLOOT is
+  Initializable,
+  ERC721Enumerable,
+  IERC1155Receiver,
+  IERC721Receiver
+{
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event Enchant(uint indexed nftId, uint[] gemIds, uint[] indices, address indexed owner);
   event Disenchant(uint indexed tokenId, address indexed owner);
@@ -21,22 +27,11 @@ contract ProvablyRareGemEnchantedBLOOT is ERC721Enumerable, IERC1155Receiver, IE
 
   address public owner;
   uint private lock;
-  IERC721 public immutable NFT;
-  ProvablyRareGemV2 public immutable GEM;
+  IERC721 public NFT;
+  ProvablyRareGemV2 public GEM;
   uint public constant FIRST_KIND = 10;
   uint public enchantCount;
-  string[10] public gemShortNames = [
-    'Violet',
-    'Goldy',
-    'Translucent',
-    'Ice',
-    'Blushing',
-    'Mossy',
-    'Lovely',
-    '#00FF00',
-    '#0000FF',
-    '#FF0000'
-  ];
+  string[10] public gemShortNames;
   string[10] public colorCodes;
   bool private isEnchanting;
 
@@ -77,16 +72,35 @@ contract ProvablyRareGemEnchantedBLOOT is ERC721Enumerable, IERC1155Receiver, IE
     emit OwnershipTransferred(msg.sender, _owner);
   }
 
-  constructor(IERC721 _nft, ProvablyRareGemV2 _gem)
-    ERC721('Provably Rare Gem Enchanted Bloot', 'BLOOT+')
-  {
+  constructor() ERC721('', '') {}
+
+  function name() public view override returns (string memory) {
+    return 'Enchanted Bloot';
+  }
+
+  function symbol() public view override returns (string memory) {
+    return 'BLOOT+';
+  }
+
+  function initialize(IERC721 _nft, ProvablyRareGemV2 _gem) external initializer {
     lock = 1;
     NFT = _nft;
     GEM = _gem;
-    owner = msg.sender;
     for (uint i = 0; i < 10; i++) {
       (, colorCodes[i], , , , , , , ) = _gem.gems(FIRST_KIND + i);
     }
+    gemShortNames = [
+      'Violet',
+      'Goldy',
+      'Translucent',
+      'Ice',
+      'Blushing',
+      'Mossy',
+      'Lovely',
+      '#00FF00',
+      '#0000FF',
+      '#FF0000'
+    ];
     emit OwnershipTransferred(address(0), msg.sender);
   }
 
@@ -153,7 +167,7 @@ contract ProvablyRareGemEnchantedBLOOT is ERC721Enumerable, IERC1155Receiver, IE
     string[17] memory parts;
     parts[
       0
-    ] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 400 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
+    ] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 400 350"><style>.base { fill: black; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="#01ff01" /><text x="10" y="20" class="base">';
 
     parts[1] = ILoot(address(NFT)).getWeapon(nftId);
 
@@ -225,7 +239,7 @@ contract ProvablyRareGemEnchantedBLOOT is ERC721Enumerable, IERC1155Receiver, IE
           abi.encodePacked(
             '{"name": "Enchanted Bag #',
             toString(_tokenId),
-            '", "description": "Enchanted Bloot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Bloot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Bloot in any way you want.", "image": "data:image/svg+xml;base64,',
+            '", "description": "Enchanted Bloot is an enchanted gear for hardcore adventurers, a combination of Provably Rare Gems and Bloot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Bloot in any way you want.", "image": "data:image/svg+xml;base64,',
             Base64.encode(bytes(output)),
             '"}'
           )

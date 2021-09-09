@@ -3,12 +3,18 @@ pragma solidity 0.8.3;
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/IERC721.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC1155/IERC1155.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
 import './ProvablyRareGemV2.sol';
 import '../interfaces/ILoot.sol';
 
-/// @title Provably Rare Gem Enchanted Loot
+/// @title Enchanted Loot
 /// @author AlphaFinanceLab
-contract ProvablyRareGemEnchantedLOOT is ERC721Enumerable, IERC1155Receiver, IERC721Receiver {
+contract ProvablyRareGemEnchantedLOOT is
+  Initializable,
+  ERC721Enumerable,
+  IERC1155Receiver,
+  IERC721Receiver
+{
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event Enchant(uint indexed nftId, uint[] gemIds, uint[] indices, address indexed owner);
   event Disenchant(uint indexed tokenId, address indexed owner);
@@ -21,22 +27,11 @@ contract ProvablyRareGemEnchantedLOOT is ERC721Enumerable, IERC1155Receiver, IER
 
   address public owner;
   uint private lock;
-  IERC721 public immutable NFT;
-  ProvablyRareGemV2 public immutable GEM;
+  IERC721 public NFT;
+  ProvablyRareGemV2 public GEM;
   uint public constant FIRST_KIND = 0;
   uint public enchantCount;
-  string[10] public gemShortNames = [
-    'Amethyst',
-    'Topaz',
-    'Opal',
-    'Sapphire',
-    'Ruby',
-    'Emerald',
-    'Pink',
-    'Jade',
-    'Azure',
-    'Scarlet'
-  ];
+  string[10] public gemShortNames;
   string[10] public colorCodes;
   bool private isEnchanting;
 
@@ -77,9 +72,17 @@ contract ProvablyRareGemEnchantedLOOT is ERC721Enumerable, IERC1155Receiver, IER
     emit OwnershipTransferred(msg.sender, _owner);
   }
 
-  constructor(IERC721 _nft, ProvablyRareGemV2 _gem)
-    ERC721('Provably Rare Gem Enchanted Loot', 'LOOT+')
-  {
+  constructor() ERC721('', '') {}
+
+  function name() public view override returns (string memory) {
+    return 'Enchanted Loot';
+  }
+
+  function symbol() public view override returns (string memory) {
+    return 'LOOT+';
+  }
+
+  function initialize(IERC721 _nft, ProvablyRareGemV2 _gem) external initializer {
     lock = 1;
     NFT = _nft;
     GEM = _gem;
@@ -87,6 +90,18 @@ contract ProvablyRareGemEnchantedLOOT is ERC721Enumerable, IERC1155Receiver, IER
     for (uint i = 0; i < 10; i++) {
       (, colorCodes[i], , , , , , , ) = _gem.gems(FIRST_KIND + i);
     }
+    gemShortNames = [
+      'Amethyst',
+      'Topaz',
+      'Opal',
+      'Sapphire',
+      'Ruby',
+      'Emerald',
+      'Pink',
+      'Jade',
+      'Azure',
+      'Scarlet'
+    ];
     emit OwnershipTransferred(address(0), msg.sender);
   }
 
@@ -225,7 +240,7 @@ contract ProvablyRareGemEnchantedLOOT is ERC721Enumerable, IERC1155Receiver, IER
           abi.encodePacked(
             '{"name": "Enchanted Bag #',
             toString(_tokenId),
-            '", "description": "Enchanted Loot is an enchanted gear for hardcore adventurer, a combination of Provably Rare Gems and Loot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Loot in any way you want.", "image": "data:image/svg+xml;base64,',
+            '", "description": "Enchanted Loot is an enchanted gear for hardcore adventurers, a combination of Provably Rare Gems and Loot. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Enchanted Loot in any way you want.", "image": "data:image/svg+xml;base64,',
             Base64.encode(bytes(output)),
             '"}'
           )
