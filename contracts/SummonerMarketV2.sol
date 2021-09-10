@@ -53,8 +53,8 @@ contract SummonerMarketV2 is Initializable, ERC721Holder {
     emit SetFeeBps(_feeBps);
   }
 
-  /// @dev Update listing price for the given summoner.
-  function list(uint summonerId, uint price) external nonReentrant {
+  /// @dev Updates listing price for the given summoner.
+  function update(uint summonerId, uint price) external nonReentrant {
     if (price > 0) {
       require(rarity.ownerOf(summonerId) == msg.sender, 'not summoner owner');
       require(rarity.isApprovedForAll(msg.sender, address(this)), 'not approved');
