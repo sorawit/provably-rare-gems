@@ -10,6 +10,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initiali
 contract SummonerMarketV2 is Initializable, ERC721Holder {
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
   event List(uint indexed id, address indexed lister, uint price);
+  event Delist(uint indexed id, address indexed lister);
   event Buy(uint indexed id, address indexed seller, address indexed buyer, uint price, uint fee);
   event SetFeeBps(uint feeBps);
 
@@ -58,11 +59,12 @@ contract SummonerMarketV2 is Initializable, ERC721Holder {
     if (price > 0) {
       require(rarity.ownerOf(summonerId) == msg.sender, 'not summoner owner');
       require(rarity.isApprovedForAll(msg.sender, address(this)), 'not approved');
+      emit List(summonerId, msg.sender, price);
     } else {
       require(prices[msg.sender][summonerId] > 0, 'already zero');
+      emit Delist(summonerId, msg.sender);
     }
     prices[msg.sender][summonerId] = price;
-    emit List(summonerId, msg.sender, price);
   }
 
   /// @dev Buys the given summoner. Must pay the exact correct prirce.
