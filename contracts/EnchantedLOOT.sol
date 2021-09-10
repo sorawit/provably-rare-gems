@@ -139,6 +139,26 @@ contract EnchantedLOOT is Initializable, ERC721Enumerable, IERC1155Receiver, IER
     emit Disenchant(_tokenId, msg.sender);
   }
 
+  function getEnchantInfos(uint[] calldata _tokenIds)
+    external
+    view
+    returns (
+      uint[] memory nftIds,
+      uint[][] memory gemIds,
+      uint[][] memory indices
+    )
+  {
+    nftIds = new uint[](_tokenIds.length);
+    gemIds = new uint[][](_tokenIds.length);
+    indices = new uint[][](_tokenIds.length);
+    for (uint i = 0; i < _tokenIds.length; i++) {
+      uint id = _tokenIds[i];
+      nftIds[i] = enchantInfos[id].nftId;
+      gemIds[i] = enchantInfos[id].gemIds;
+      indices[i] = enchantInfos[id].indices;
+    }
+  }
+
   function tokenURI(uint _tokenId) public view override returns (string memory) {
     require(_tokenId < enchantCount, 'enchanted LOOT not exist');
     EnchantInfo memory info = enchantInfos[_tokenId];
