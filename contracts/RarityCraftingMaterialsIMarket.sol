@@ -141,6 +141,10 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     amounts[msg.sender] -= _buyAmount;
     asset.transfer(SUMMONER_ID, _summonerId, _buyAmount);
 
+    uint fee = (buyValue * feeBps) / 10000;
+    uint get = buyValue - fee;
+    payable(_lister).transfer(get);
+
     // remaining amount = 0
     if (amount == _buyAmount) {
       set.remove(msg.sender);
