@@ -82,6 +82,10 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     emit SetFeeBps(_feeBps);
   }
 
+  function _isApprovedOrOwner(uint _summoner) internal view returns (bool) {
+    return RM.getApproved(_summoner) == msg.sender || RM.ownerOf(_summoner) == msg.sender;
+  }
+
   /// @dev Modifies order, providing new price and delta amount (can be negative).
   /// @param _price New price to set to.
   /// @param _amount Delta amount to modify. Negative means less amount.
@@ -91,7 +95,7 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     int _amount,
     uint _summonerId
   ) external nonReentrant {
-    require(RM.ownerOf(_summonerId) == msg.sender, '!owner');
+    require(_isApprovedOrOwner(_summonerId), '!approved');
     uint oldAmount = amounts[msg.sender];
     uint newAmount = int(oldAmount.toInt256() + _amount).toUint256();
     if (newAmount > 0) {
@@ -131,7 +135,7 @@ contract RarityCraftingMaterialsIMarket is Initializable {
   ) external payable nonReentrant {
     uint price = prices[_lister];
     uint amount = amounts[_lister];
-    require(RM.ownerOf(_summonerId) == msg.sender, '!owner');
+    require(_isApprovedOrOwner(_summonerId), '!approved');
     require(_buyAmount <= amount, '!amount');
     require(price <= _maxPrice, '!maxPrice');
     uint buyValue = price * _buyAmount;
