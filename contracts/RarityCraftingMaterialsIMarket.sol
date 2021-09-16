@@ -4,6 +4,7 @@ pragma solidity 0.8.3;
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC20/IERC20.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/structs/EnumerableSet.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/math/SafeCast.sol';
 
 import '../interfaces/IAsset.sol';
 import '../interfaces/IRarity.sol';
@@ -11,26 +12,26 @@ import '../interfaces/IRarity.sol';
 /// @dev Rarity Crafting Materials (I) market to allow trading of crafting materials.
 /// @author swit.eth (@nomorebear) + nipun (@nipun_pit) + jade (@jade_arin)
 contract RarityCraftingMaterialsIMarket is Initializable {
-  using EnumerableSet for EnumerableSet.UintSet;
+  using EnumerableSet for EnumerableSet.AddressSet;
+  using SafeCast for uint;
+  using SafeCast for int;
 
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-  event List(uint indexed id, address indexed lister, uint price, uint amount);
-  event Unlist(uint indexed id, address indexed lister, uint amount);
+  event Modify(
+    address indexed lister,
+    uint indexed price,
+    int modifyAmount,
+    uint indexed summonerId
+  );
   event Buy(
-    uint indexed id,
-    address indexed seller,
+    address indexed lister,
     address indexed buyer,
-    uint price,
-    uint amount,
-    uint fee
+    uint indexed price,
+    uint buyAmount,
+    uint summonerId,
+    uint minPrice
   );
   event SetFeeBps(uint feeBps);
-
-  struct Listing {
-    address lister;
-    uint price;
-    uint amount;
-  }
 
   IAsset public asset;
   IRarity public constant RM = IRarity(0xce761D788DF608BD21bdd59d6f4B54b2e27F25Bb);
@@ -38,11 +39,10 @@ contract RarityCraftingMaterialsIMarket is Initializable {
   uint public feeBps;
   address public owner;
   uint private lock;
-  EnumerableSet.UintSet private set;
-  mapping(address => EnumerableSet.UintSet) private mySet;
+  EnumerableSet.AddressSet private set;
 
-  mapping(uint => Listing) listings;
-  uint public orderCount;
+  mapping(address => uint) prices;
+  mapping(address => uint) amounts;
 
   modifier nonReentrant() {
     require(lock == 1, '!lock');
@@ -82,79 +82,67 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     emit SetFeeBps(_feeBps);
   }
 
-  /// @dev Lists the given crafting materials. This contract will take custody until bought / unlisted.
-  function list(
-    uint _id,
+  function modify(
     uint _price,
-    uint _amount
+    int _amount,
+    uint _summonerId
   ) external nonReentrant {
-    require(_price > 0, 'bad price');
-    require(_amount > 0, 'bad amount');
-    require(RM.ownerOf(_id) == msg.sender || RM.getApproved(_id) == msg.sender, '!approved/owner');
-    uint orderCount_ = orderCount; // gas saving
-    require(listings[orderCount_].price == 0, 'already listed');
+    require(RM.ownerOf(_summonerId) == msg.sender, '!owner');
+    uint oldAmount = amounts[msg.sender];
+    uint newAmount = int(oldAmount.toInt256() + _amount).toUint256();
+    if (newAmount > 0) {
+      require(_price > 0, '!price');
+    }
+    uint oldValue = prices[msg.sender] * oldAmount;
+    uint newValue = _price * newAmount;
 
-    listings[orderCount_] = Listing({lister: msg.sender, price: _price, amount: _amount});
-    set.add(orderCount_);
-    mySet[msg.sender].add(orderCount_);
-    asset.transferFrom(SUMMONER_ID, _id, SUMMONER_ID, _amount);
-    emit List(orderCount_, msg.sender, _price, _amount);
-    orderCount++;
-  }
+    prices[msg.sender] = _price;
+    amounts[msg.sender] = newAmount;
 
-  /// @dev Unlists the given crafting materials. Must be the lister.
-  function unlist(
-    uint _orderId,
-    uint _amount,
-    uint _outSummonerId
-  ) external nonReentrant {
-    Listing memory listing = listings[_orderId];
-    if (_amount == type(uint).max) _amount = listing.amount;
-    require(listing.price > 0, 'not listed');
-    require(_amount <= listing.amount, 'bad amount');
-    require(_amount > 0, 'zero amount');
-    require(listing.lister == msg.sender, 'not lister');
-    require(RM.ownerOf(_outSummonerId) == msg.sender, 'bad target');
-
-    if (_amount == listing.amount) {
-      listings[_orderId] = Listing({lister: address(0), price: 0, amount: 0});
-      set.remove(_orderId);
-      mySet[listing.lister].remove(_orderId);
-    } else {
-      listings[_orderId].amount = listing.amount - _amount;
+    if (oldValue < newValue) {
+      asset.transferFrom(SUMMONER_ID, _summonerId, SUMMONER_ID, newValue - oldValue);
+    } else if (newValue < oldValue) {
+      asset.transfer(SUMMONER_ID, _summonerId, oldValue - newValue);
     }
 
-    asset.transfer(SUMMONER_ID, _outSummonerId, _amount);
-    emit Unlist(_orderId, msg.sender, _amount);
+    if (_amount > 0 && newAmount == 0) {
+      set.remove(msg.sender);
+    } else if (_amount == 0 && newAmount > 0) {
+      set.add(msg.sender);
+    }
+
+    emit Modify(msg.sender, _price, _amount, _summonerId);
   }
 
   /// @dev Buys the given crafting materials. Must pay the exact correct prirce.
   function buy(
-    uint _orderId,
-    uint _amount,
-    uint _outSummonerId
+    address _lister,
+    uint _buyAmount,
+    uint _summonerId,
+    uint _maxPrice
   ) external payable nonReentrant {
-    Listing memory listing = listings[_orderId];
-    require(listing.price > 0, 'not listed');
-    require(_amount <= listing.amount, 'bad amount');
-    require(_amount > 0, 'zero amount');
-    require(msg.value == listing.price * _amount, 'bad msg.value');
-    require(RM.ownerOf(_outSummonerId) == msg.sender, 'bad target');
+    uint price = prices[_lister];
+    uint amount = amounts[_lister];
+    require(RM.ownerOf(_summonerId) == msg.sender, '!owner');
+    require(_buyAmount <= amount, '!amount');
+    require(price <= _maxPrice, '!maxPrice');
+    uint buyValue = price * _buyAmount;
+    require(msg.value >= buyValue, '!value');
 
-    uint fee = (listing.price * _amount * feeBps) / 10000;
-    uint get = listing.price * _amount - fee;
+    amounts[msg.sender] -= _buyAmount;
+    asset.transfer(SUMMONER_ID, _summonerId, _buyAmount);
 
-    if (listing.amount == _amount) {
-      listings[_orderId] = Listing({lister: address(0), price: 0, amount: 0});
-      set.remove(_orderId);
-      mySet[listing.lister].remove(_orderId);
-    } else {
-      listings[_orderId].amount = listing.amount - _amount;
+    // remaining amount = 0
+    if (amount == _buyAmount) {
+      set.remove(msg.sender);
     }
 
-    asset.transfer(SUMMONER_ID, _outSummonerId, _amount);
-    payable(listing.lister).transfer(get);
-    emit Buy(_orderId, listing.lister, msg.sender, listing.price, _amount, fee);
+    // refund over-paid amount
+    if (msg.value > buyValue) {
+      payable(msg.sender).transfer(msg.value - buyValue);
+    }
+
+    emit Buy(_lister, msg.sender, price, _buyAmount, _summonerId, _maxPrice);
   }
 
   /// @dev Withdraw trading fees. Only called by owner.
@@ -172,47 +160,18 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     external
     view
     returns (
-      uint[] memory rIds,
+      address[] memory rIds,
       uint[] memory rPrices,
       uint[] memory rAmounts
     )
   {
-    rIds = new uint[](count);
+    rIds = new address[](count);
     rPrices = new uint[](count);
     rAmounts = new uint[](count);
     for (uint idx = 0; idx < count; idx++) {
       rIds[idx] = set.at(start + idx);
-      rPrices[idx] = listings[rIds[idx]].price;
-      rAmounts[idx] = listings[rIds[idx]].amount;
-    }
-  }
-
-  /// @dev Returns list the total number of listed crafting materials of the given user.
-  function myListLength(address user) external view returns (uint) {
-    return mySet[user].length();
-  }
-
-  /// @dev Returns the ids, prices, amounts of the listed crafting materials of the given user.
-  function myListsAt(
-    address user,
-    uint start,
-    uint count
-  )
-    external
-    view
-    returns (
-      uint[] memory rIds,
-      uint[] memory rPrices,
-      uint[] memory rAmounts
-    )
-  {
-    rIds = new uint[](count);
-    rPrices = new uint[](count);
-    rAmounts = new uint[](count);
-    for (uint idx = 0; idx < count; idx++) {
-      rIds[idx] = mySet[user].at(start + idx);
-      rPrices[idx] = listings[rIds[idx]].price;
-      rAmounts[idx] = listings[rIds[idx]].amount;
+      rPrices[idx] = prices[rIds[idx]];
+      rAmounts[idx] = amounts[rIds[idx]];
     }
   }
 }
