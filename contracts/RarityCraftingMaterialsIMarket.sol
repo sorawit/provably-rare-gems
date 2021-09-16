@@ -96,21 +96,18 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     uint _summonerId
   ) external nonReentrant {
     require(_isApprovedOrOwner(_summonerId), '!approved');
-    uint oldAmount = amounts[msg.sender];
-    uint newAmount = int(oldAmount.toInt256() + _amount).toUint256();
+    uint newAmount = int(amounts[msg.sender].toInt256() + _amount).toUint256();
     if (newAmount > 0) {
       require(_price > 0, '!price');
     }
-    uint oldValue = prices[msg.sender] * oldAmount;
-    uint newValue = _price * newAmount;
 
     prices[msg.sender] = _price;
     amounts[msg.sender] = newAmount;
 
-    if (oldValue < newValue) {
-      asset.transferFrom(SUMMONER_ID, _summonerId, SUMMONER_ID, newValue - oldValue);
-    } else if (newValue < oldValue) {
-      asset.transfer(SUMMONER_ID, _summonerId, oldValue - newValue);
+    if (_amount > 0) {
+      asset.transferFrom(SUMMONER_ID, _summonerId, SUMMONER_ID, uint(_amount));
+    } else if (_amount < 0) {
+      asset.transfer(SUMMONER_ID, _summonerId, uint(-_amount));
     }
 
     if (_amount > 0 && newAmount == 0) {
