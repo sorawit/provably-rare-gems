@@ -82,6 +82,10 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     emit SetFeeBps(_feeBps);
   }
 
+  /// @dev Modifies order, providing new price and delta amount (can be negative).
+  /// @param _price New price to set to.
+  /// @param _amount Delta amount to modify. Negative means less amount.
+  /// @param _summonerId Target summoner id to transfer asset to/from.
   function modify(
     uint _price,
     int _amount,
@@ -114,7 +118,11 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     emit Modify(msg.sender, _price, _amount, _summonerId);
   }
 
-  /// @dev Buys the given crafting materials. Must pay the exact correct prirce.
+  /// @dev Buys the given crafting materials.
+  /// @param _lister Order lister address.
+  /// @param _buyAmount Desired amount to buy.
+  /// @param _summonerId Target summoner id to receive asset
+  /// @param _maxPrice Slippage control.
   function buy(
     address _lister,
     uint _buyAmount,
