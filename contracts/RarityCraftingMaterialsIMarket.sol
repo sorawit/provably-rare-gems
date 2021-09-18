@@ -133,14 +133,14 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
     uint _maxPrice
   ) external payable nonReentrant {
     uint price = prices[_lister];
-    uint amount = amounts[_lister];
+    uint oldAmount = amounts[_lister];
     require(_isApprovedOrOwner(_summonerId), '!approved');
-    require(_buyAmount <= amount, '!amount');
+    require(_buyAmount <= oldAmount, '!amount');
     require(price <= _maxPrice, '!maxPrice');
     uint buyValue = price * _buyAmount;
     require(msg.value >= buyValue, '!value');
 
-    amounts[_lister] -= _buyAmount;
+    amounts[_lister] = oldAmount - _buyAmount;
     asset.transfer(SUMMONER_ID, _summonerId, _buyAmount);
 
     uint fee = (buyValue * feeBps) / 10000;
@@ -148,7 +148,7 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
     payable(_lister).transfer(get);
 
     // remaining amount = 0
-    if (amount == _buyAmount) {
+    if (oldAmount == _buyAmount) {
       set.remove(msg.sender);
     }
 
