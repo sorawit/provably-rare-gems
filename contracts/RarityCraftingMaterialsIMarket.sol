@@ -97,7 +97,8 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
     uint _summonerId
   ) external nonReentrant {
     require(_isApprovedOrOwner(_summonerId), '!approved');
-    uint newAmount = int(amounts[msg.sender].toInt256() + _amount).toUint256();
+    uint oldAmount = amounts[msg.sender];
+    uint newAmount = int(oldAmount.toInt256() + _amount).toUint256();
     if (newAmount > 0) {
       require(_price > 0, '!price');
     }
@@ -111,9 +112,9 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
       asset.transfer(SUMMONER_ID, _summonerId, uint(-_amount));
     }
 
-    if (_amount > 0 && newAmount == 0) {
+    if (oldAmount > 0 && newAmount == 0) {
       set.remove(msg.sender);
-    } else if (_amount == 0 && newAmount > 0) {
+    } else if (oldAmount == 0 && newAmount > 0) {
       set.add(msg.sender);
     }
 
