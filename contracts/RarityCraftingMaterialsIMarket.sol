@@ -3,6 +3,7 @@ pragma solidity 0.8.3;
 
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC20/IERC20.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initializable.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/utils/ERC721Holder.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/structs/EnumerableSet.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/math/SafeCast.sol';
 
@@ -11,7 +12,7 @@ import '../interfaces/IRarity.sol';
 
 /// @dev Rarity Crafting Materials (I) market to allow trading of crafting materials.
 /// @author swit.eth (@nomorebear) + nipun (@nipun_pit) + jade (@jade_arin)
-contract RarityCraftingMaterialsIMarket is Initializable {
+contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
   using EnumerableSet for EnumerableSet.AddressSet;
   using SafeCast for uint;
   using SafeCast for int;
@@ -41,8 +42,8 @@ contract RarityCraftingMaterialsIMarket is Initializable {
   uint private lock;
   EnumerableSet.AddressSet private set;
 
-  mapping(address => uint) prices;
-  mapping(address => uint) amounts;
+  mapping(address => uint) public prices;
+  mapping(address => uint) public amounts;
 
   modifier nonReentrant() {
     require(lock == 1, '!lock');
@@ -138,7 +139,7 @@ contract RarityCraftingMaterialsIMarket is Initializable {
     uint buyValue = price * _buyAmount;
     require(msg.value >= buyValue, '!value');
 
-    amounts[msg.sender] -= _buyAmount;
+    amounts[_lister] -= _buyAmount;
     asset.transfer(SUMMONER_ID, _summonerId, _buyAmount);
 
     uint fee = (buyValue * feeBps) / 10000;

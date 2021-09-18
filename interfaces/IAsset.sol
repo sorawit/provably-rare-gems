@@ -14,4 +14,14 @@ interface IAsset {
     uint,
     uint
   ) external returns (bool);
+
+  function balanceOf(uint) external view returns (uint);
+
+  function ownerOf(uint) external view returns (address);
+
+  function approve(
+    uint,
+    uint,
+    uint
+  ) external returns (bool);
 }
