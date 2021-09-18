@@ -10,7 +10,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/math/SafeCast.
 import '../interfaces/IAsset.sol';
 import '../interfaces/IRarity.sol';
 
-/// @dev Rarity Crafting Materials (I) market to allow trading of crafting materials.
+/// @dev Rarity Gold market to allow trading of gold.
 /// @author swit.eth (@nomorebear) + nipun (@nipun_pit) + jade (@jade_arin)
 contract RarityGoldMarket is Initializable, ERC721Holder {
   using EnumerableSet for EnumerableSet.AddressSet;
@@ -121,7 +121,7 @@ contract RarityGoldMarket is Initializable, ERC721Holder {
     emit Modify(msg.sender, _price, _amount, _summonerId);
   }
 
-  /// @dev Buys the given crafting materials.
+  /// @dev Buys the given gold.
   /// @param _lister Order lister address.
   /// @param _buyAmount Desired amount to buy.
   /// @param _summonerId Target summoner id to receive asset
@@ -165,12 +165,12 @@ contract RarityGoldMarket is Initializable, ERC721Holder {
     payable(msg.sender).transfer(_amount == 0 ? address(this).balance : _amount);
   }
 
-  /// @dev Returns list the total number of listed crafting materials.
+  /// @dev Returns list the total number of listed gold.
   function listLength() external view returns (uint) {
     return set.length();
   }
 
-  /// @dev Returns the ids, prices, amounts of the listed crafting materials.
+  /// @dev Returns the ids, prices, amounts of the listed gold.
   function listsAt(uint start, uint count)
     external
     view
