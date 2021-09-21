@@ -6,6 +6,7 @@ import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/proxy/utils/Initiali
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/token/ERC721/utils/ERC721Holder.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/structs/EnumerableSet.sol';
 import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/math/SafeCast.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/utils/math/Math.sol';
 
 import '../interfaces/IAsset.sol';
 import '../interfaces/IRarity.sol';
@@ -88,7 +89,7 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
   }
 
   /// @dev Modifies order, providing new price and delta amount (can be negative).
-  /// @param _price New price to set to.
+  /// @param _price New price to set to. (in 1e18)
   /// @param _amount Delta amount to modify. Negative means less amount.
   /// @param _summonerId Target summoner id to transfer asset to/from.
   function modify(
@@ -125,7 +126,7 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
   /// @param _lister Order lister address.
   /// @param _buyAmount Desired amount to buy.
   /// @param _summonerId Target summoner id to receive asset
-  /// @param _maxPrice Slippage control.
+  /// @param _maxPrice Slippage control. (in 1e18)
   function buy(
     address _lister,
     uint _buyAmount,
@@ -137,7 +138,7 @@ contract RarityCraftingMaterialsIMarket is Initializable, ERC721Holder {
     require(_isApprovedOrOwner(_summonerId), '!approved');
     require(_buyAmount <= oldAmount, '!amount');
     require(price <= _maxPrice, '!maxPrice');
-    uint buyValue = price * _buyAmount;
+    uint buyValue = Math.ceilDiv(price * _buyAmount, 1e18);
     require(msg.value >= buyValue, '!value');
 
     amounts[_lister] = oldAmount - _buyAmount;
